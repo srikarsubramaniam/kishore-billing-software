@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains sensitive MongoDB connection string)
+.env
+
+# Local data files (not needed when using MongoDB)
+data/
+*.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Backup files
+*.backup
+*.bak
+
+# Temporary files
+*.tmp
+
