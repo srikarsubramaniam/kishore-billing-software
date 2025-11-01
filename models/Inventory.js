@@ -55,3 +55,4 @@ inventorySchema.pre('save', function(next) {
 
 module.exports = mongoose.model('Inventory', inventorySchema);
 
+

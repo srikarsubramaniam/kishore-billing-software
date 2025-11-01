@@ -165,3 +165,4 @@ Project Root/
 
 **Summary:** Your data is currently stored in JSON files on your server's file system. This works well for single-user or small teams, but consider cloud hosting + database for production use or multi-location access.
 
+

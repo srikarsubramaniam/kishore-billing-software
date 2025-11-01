@@ -3,7 +3,7 @@ services:
     name: saravanastores-billing
     env: node
     plan: free
-    rootDir: .
+    rootDirectory: .
     buildCommand: npm install
     startCommand: npm start
     envVars:

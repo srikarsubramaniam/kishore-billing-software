@@ -135,3 +135,4 @@ mongodb+srv://myuser:mypassword123@cluster0.a1b2c3.mongodb.net/saravana-stores?r
 
 **That's it!** Once `MONGO_URL` is set, your app will connect to MongoDB and work perfectly! 🚀
 
+
