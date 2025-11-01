@@ -1,10 +1,13 @@
 services:
-"  - type: web" 
-"    name: saravanastores-billing" 
-"    env: node" 
-"    buildCommand: npm install" 
-"    startCommand: npm start" 
-"    plan: free" 
-"    envVars:" 
-"      - key: MONGODB_URI" 
-"        sync: false" 
+  - type: web
+    name: saravanastores-billing
+    env: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: NODE_ENV
+        value: production
