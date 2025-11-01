@@ -3,8 +3,8 @@ services:
     name: saravanastores-billing
     env: node
     rootDir: .
-    buildCommand: "npm install"
-    startCommand: "npm start"
+    buildCommand: npm install
+    startCommand: node server.js
     plan: free
     envVars:
       - key: MONGODB_URI
