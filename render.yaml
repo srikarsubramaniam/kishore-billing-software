@@ -1,17 +1,11 @@
 services:
   - type: web
-    name: saravana-stores
+    name: saravanastores-billing
     env: node
+    rootDir: .
+    buildCommand: "npm install"
+    startCommand: "npm start"
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
     envVars:
-      - key: MONGO_URL
+      - key: MONGODB_URI
         sync: false
-        # IMPORTANT: Set this in Render dashboard manually
-        # Get your MongoDB Atlas connection string and add it as environment variable
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-        # Render automatically sets PORT, but we define default just in case
