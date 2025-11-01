@@ -18,7 +18,7 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    console.error('💡 Make sure MONGO_URL environment variable is set correctly');
+    console.error('💡 Make sure MONGO_URL or MONGODB_URI environment variable is set correctly');
     process.exit(1);
   }
 };

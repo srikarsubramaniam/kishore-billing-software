@@ -12,9 +12,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Connect to MongoDB Atlas
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch(err => console.log("❌ MongoDB connection failed:", err));
+  .catch(err => console.error("❌ MongoDB connection failed:", err));
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -404,25 +407,7 @@ app.get('/', (req, res) => {
 // ============================================
 
 app.listen(PORT, '0.0.0.0', () => {
-  const os = require('os');
-  const networkInterfaces = os.networkInterfaces();
-  let localIP = 'localhost';
-  
-  // Find local IP address
-  for (const interfaceName in networkInterfaces) {
-    const addresses = networkInterfaces[interfaceName];
-    for (const address of addresses) {
-      if (address.family === 'IPv4' && !address.internal) {
-        localIP = address.address;
-        break;
-      }
-    }
-    if (localIP !== 'localhost') break;
-  }
-  
-  console.log(`\n🚀 Server is running!`);
+  console.log("🚀 Server is running!");
   console.log(`📍 Local access: http://localhost:${PORT}`);
-  console.log(`📱 Mobile access: http://${localIP}:${PORT}`);
-  console.log(`💾 Using MongoDB Atlas for data storage`);
-  console.log(`\n💡 Make sure your phone is on the same Wi-Fi network!\n`);
+  console.log("💾 Using MongoDB Atlas for data storage");
 });
