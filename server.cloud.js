@@ -7,16 +7,35 @@ const { v4: uuidv4 } = require('uuid');
 const connectDB = require('./config/database');
 const Inventory = require('./models/Inventory');
 const Bill = require('./models/Bill');
+const mongoose = require('mongoose');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Connect to MongoDB
-connectDB();
-
+// Middleware (set up before routes)
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+// ============================================
+// ROUTES (Must be defined before server starts)
+// ============================================
+
+// Root route - Simple health check for Render
+app.get('/', (req, res) => {
+  res.send('Server running successfully on Render!');
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    port: PORT
+  });
+});
 
 // Get all inventory items
 app.get('/api/inventory', async (req, res) => {
@@ -112,6 +131,35 @@ app.delete('/api/inventory/:id', async (req, res) => {
   }
 });
 
+// Initialize sample inventory
+app.post('/api/inventory/initialize', async (req, res) => {
+  try {
+    const existingCount = await Inventory.countDocuments();
+    if (existingCount > 0) {
+      return res.json({ message: 'Inventory already initialized', count: existingCount });
+    }
+
+    const sampleItems = [
+      // Fancy Items
+      { id: uuidv4(), name: 'Handmade Bracelet Set', category: 'fancy', price: 299.00, quantity: 50, description: 'Beautiful handmade bracelet set', sku: 'FANCY-001', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'Decorative Wall Clock', category: 'fancy', price: 899.00, quantity: 30, description: 'Vintage style decorative wall clock', sku: 'FANCY-002', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'Crystal Vase Set', category: 'fancy', price: 1299.00, quantity: 25, description: 'Elegant crystal vase set', sku: 'FANCY-003', image: 'https://images.unsplash.com/photo-1578932750355-5eb30ece6a6e?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      // Electronics
+      { id: uuidv4(), name: 'Wireless Bluetooth Headphones', category: 'electronics', price: 2499.00, quantity: 40, description: 'Premium wireless Bluetooth headphones', sku: 'ELEC-001', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'Smart LED TV 32 inch', category: 'electronics', price: 15999.00, quantity: 15, description: '32 inch Smart LED TV', sku: 'ELEC-002', image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'Electrical Wire (1mm)', category: 'electronics', price: 49.00, quantity: 500, description: 'Copper electrical wire 1mm', sku: 'ELEC-011', image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'PVC Electrical Pipe 20mm', category: 'electronics', price: 89.00, quantity: 300, description: 'PVC electrical conduit pipe 20mm', sku: 'ELEC-012', image: 'https://images.unsplash.com/photo-1612961514403-7ea0b3c7a0f7?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'LED Tubelight 20W', category: 'electronics', price: 449.00, quantity: 100, description: 'Energy efficient LED tubelight 20W', sku: 'ELEC-013', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'Screws Set (Assorted)', category: 'electronics', price: 149.00, quantity: 200, description: 'Assorted electrical screws set', sku: 'ELEC-014', image: 'https://images.unsplash.com/photo-1600878455253-4c71c1d9e3dc?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() }
+    ];
+
+    await Inventory.insertMany(sampleItems);
+    res.json({ message: 'Sample inventory initialized', count: sampleItems.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create new bill
 app.post('/api/bills', async (req, res) => {
   try {
@@ -177,35 +225,6 @@ app.get('/api/bills/:id', async (req, res) => {
     } else {
       res.status(404).json({ error: 'Bill not found' });
     }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Initialize sample inventory
-app.post('/api/inventory/initialize', async (req, res) => {
-  try {
-    const existingCount = await Inventory.countDocuments();
-    if (existingCount > 0) {
-      return res.json({ message: 'Inventory already initialized', count: existingCount });
-    }
-
-    const sampleItems = [
-      // Fancy Items
-      { id: uuidv4(), name: 'Handmade Bracelet Set', category: 'fancy', price: 299.00, quantity: 50, description: 'Beautiful handmade bracelet set', sku: 'FANCY-001', image: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'Decorative Wall Clock', category: 'fancy', price: 899.00, quantity: 30, description: 'Vintage style decorative wall clock', sku: 'FANCY-002', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'Crystal Vase Set', category: 'fancy', price: 1299.00, quantity: 25, description: 'Elegant crystal vase set', sku: 'FANCY-003', image: 'https://images.unsplash.com/photo-1578932750355-5eb30ece6a6e?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      // Electronics
-      { id: uuidv4(), name: 'Wireless Bluetooth Headphones', category: 'electronics', price: 2499.00, quantity: 40, description: 'Premium wireless Bluetooth headphones', sku: 'ELEC-001', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'Smart LED TV 32 inch', category: 'electronics', price: 15999.00, quantity: 15, description: '32 inch Smart LED TV', sku: 'ELEC-002', image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'Electrical Wire (1mm)', category: 'electronics', price: 49.00, quantity: 500, description: 'Copper electrical wire 1mm', sku: 'ELEC-011', image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'PVC Electrical Pipe 20mm', category: 'electronics', price: 89.00, quantity: 300, description: 'PVC electrical conduit pipe 20mm', sku: 'ELEC-012', image: 'https://images.unsplash.com/photo-1612961514403-7ea0b3c7a0f7?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'LED Tubelight 20W', category: 'electronics', price: 449.00, quantity: 100, description: 'Energy efficient LED tubelight 20W', sku: 'ELEC-013', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() },
-      { id: uuidv4(), name: 'Screws Set (Assorted)', category: 'electronics', price: 149.00, quantity: 200, description: 'Assorted electrical screws set', sku: 'ELEC-014', image: 'https://images.unsplash.com/photo-1600878455253-4c71c1d9e3dc?w=400&h=400&fit=crop', createdAt: new Date(), updatedAt: new Date() }
-    ];
-
-    await Inventory.insertMany(sampleItems);
-    res.json({ message: 'Sample inventory initialized', count: sampleItems.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -369,17 +388,30 @@ app.get('/api/reports/download/:type', async (req, res) => {
   }
 });
 
-// Serve main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// ============================================
+// SERVER STARTUP (After all routes are defined)
+// ============================================
 
-app.listen(PORT, () => {
-  console.log(`\n🚀 Server is running on port ${PORT}!`);
-  console.log(`📍 Access your app at: http://localhost:${PORT}`);
-  if (process.env.RENDER) {
-    console.log(`☁️  Deployed on Render.com`);
+async function startServer() {
+  try {
+    // Connect to MongoDB first
+    await connectDB();
+    
+    // Start Express server after MongoDB connection
+    app.listen(PORT, () => {
+      console.log(`\n🚀 Server is running on port ${PORT}!`);
+      console.log(`📍 Access your app at: ${process.env.RENDER ? `https://${process.env.RENDER_SERVICE_NAME || 'your-service'}.onrender.com` : `http://localhost:${PORT}`}`);
+      console.log(`💾 Using MongoDB Cloud Database`);
+      if (process.env.RENDER) {
+        console.log(`☁️  Deployed on Render.com`);
+      }
+      console.log('');
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
   }
-  console.log(`💾 Using MongoDB Cloud Database\n`);
-});
+}
 
+// Start the application
+startServer();

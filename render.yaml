@@ -6,8 +6,12 @@ services:
     buildCommand: npm install
     startCommand: npm start
     envVars:
-      - key: MONGODB_URI
+      - key: MONGO_URL
         sync: false
+        # IMPORTANT: Set this in Render dashboard manually
+        # Get your MongoDB Atlas connection string and add it as environment variable
       - key: NODE_ENV
         value: production
-
+      - key: PORT
+        value: 10000
+        # Render automatically sets PORT, but we define default just in case
