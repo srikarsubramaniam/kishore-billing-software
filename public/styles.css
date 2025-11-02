@@ -42,10 +42,14 @@ body {
 }
 
 header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10001;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     padding: 25px 35px;
     border-radius: 20px;
-    margin-bottom: 30px;
     box-shadow: var(--shadow-xl);
     border: 1px solid rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
@@ -150,6 +154,11 @@ nav {
     .section.active {
         position: relative;
         z-index: 1;
+    }
+
+    /* Add padding to container for fixed header */
+    .container {
+        padding-top: 120px; /* Space for fixed header */
     }
 }
 
@@ -1261,6 +1270,8 @@ h2 {
     
     .header-content {
         margin-bottom: 0;
+        justify-content: flex-start;
+        gap: 12px;
     }
     
     header h1 {
@@ -1269,28 +1280,30 @@ h2 {
     
     .mobile-menu-toggle {
         display: flex;
+        order: -1; /* Move hamburger to the left on mobile */
     }
     
     nav.desktop-nav {
         position: fixed;
         top: 0;
-        right: -320px;
-        width: 280px;
-        max-width: 80vw;
-        height: 100vh;
+        left: 0;
+        width: 280px; /* Left drawer width */
+        max-width: 85%;
+        height: 100%;
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         flex-direction: column;
-        padding: 70px 20px 20px 20px;
+        padding: 70px 20px 20px 20px; /* space for header */
         box-shadow: var(--shadow-xl);
         z-index: 10000;
-        transition: right 0.3s ease;
+        transition: transform 0.3s ease;
+        transform: translateX(-100%); /* hidden to the left */
         overflow-y: auto;
         display: flex !important;
         -webkit-overflow-scrolling: touch;
     }
-    
+
     nav.desktop-nav.mobile-nav-open {
-        right: 0;
+        transform: translateX(0); /* slide in from left */
     }
     
     .nav-btn {
@@ -1330,10 +1343,20 @@ h2 {
         z-index: 9999;
         animation: fadeIn 0.3s ease;
     }
-    
+
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
+    }
+
+    /* Do not push content when drawer is open */
+    body.menu-open .container {
+        padding-top: 120px; /* keep base spacing for fixed header */
+    }
+
+    /* Prevent body scroll when menu is open */
+    body.menu-open {
+        overflow: hidden;
     }
     
     /* Ensure nav buttons are visible on mobile */

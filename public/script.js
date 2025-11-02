@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadInventory();
     loadBills();
     updateDashboard();
-    checkInventoryEmpty();
     loadUPISettings();
     // Show billing section by default on mobile
     if (window.innerWidth <= 768) {
@@ -124,16 +123,26 @@ function toggleMobileMenu() {
     const nav = document.getElementById('main-nav');
     const body = document.body;
     const toggle = document.querySelector('.mobile-menu-toggle');
-    
+
     if (!nav || !toggle) return;
-    
+
     nav.classList.toggle('mobile-nav-open');
     toggle.classList.toggle('active');
-    
-    if (nav.classList.contains('mobile-nav-open')) {
+
+    const isOpen = nav.classList.contains('mobile-nav-open');
+    // Body scroll lock state
+    if (isOpen) {
         body.classList.add('menu-open');
     } else {
         body.classList.remove('menu-open');
+    }
+    // Accessibility attributes
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    nav.setAttribute('aria-hidden', String(!isOpen));
+    if (isOpen) {
+        // Ensure drawer is focusable on open
+        if (!nav.hasAttribute('tabindex')) nav.setAttribute('tabindex', '-1');
+        nav.focus({ preventScroll: true });
     }
 }
 
@@ -141,7 +150,7 @@ function closeMobileMenu() {
     const nav = document.getElementById('main-nav');
     const body = document.body;
     const toggle = document.querySelector('.mobile-menu-toggle');
-    
+
     if (nav) nav.classList.remove('mobile-nav-open');
     if (toggle) toggle.classList.remove('active');
     if (body) body.classList.remove('menu-open');
@@ -151,9 +160,19 @@ function closeMobileMenu() {
 document.addEventListener('click', function(event) {
     const nav = document.getElementById('main-nav');
     const header = document.querySelector('header');
-    
+
     if (nav && header && !header.contains(event.target) && nav.classList.contains('mobile-nav-open')) {
         closeMobileMenu();
+    }
+});
+
+// Close with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const nav = document.getElementById('main-nav');
+        if (nav && nav.classList.contains('mobile-nav-open')) {
+            closeMobileMenu();
+        }
     }
 });
 
@@ -170,36 +189,7 @@ function saveUPISettings() {
     alert('UPI settings saved successfully!');
 }
 
-async function checkInventoryEmpty() {
-    try {
-        const response = await fetch('/api/inventory');
-        const items = await response.json();
-        if (items.length === 0) {
-            document.getElementById('init-btn').style.display = 'block';
-            document.getElementById('init-btn-inv').style.display = 'block';
-        }
-    } catch (error) {
-        console.error('Error checking inventory:', error);
-    }
-}
 
-async function initializeSampleInventory() {
-    try {
-        const response = await fetch('/api/inventory/initialize', {
-            method: 'POST'
-        });
-        const result = await response.json();
-        if (response.ok) {
-            alert(`Successfully loaded ${result.count} sample items!`);
-            document.getElementById('init-btn').style.display = 'none';
-            document.getElementById('init-btn-inv').style.display = 'none';
-            loadInventory();
-        }
-    } catch (error) {
-        console.error('Error initializing inventory:', error);
-        alert('Error loading sample items');
-    }
-}
 
 // Navigation
 function showSection(sectionId, element) {

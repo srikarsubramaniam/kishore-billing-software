@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: kishore-billing-software
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    # Add your MongoDB URI here or set it in Render dashboard
+    # - key: MONGO_URL
+    #   value: your_mongodb_connection_string

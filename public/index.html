@@ -1,253 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Saravana Stores - Billing Software</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <div class="header-content">
-                <h1>🏪 Saravana Stores</h1>
-                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+      <header> <div class="header-content"> <h1>🏪 Saravana Stores</h1> <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu" > <span></span> <span></span> <span></span> </button> </div> <nav id="main-nav" class="desktop-nav"> <button class="nav-btn active" onclick="showSection('billing', this); closeMobileMenu();" > 📝 Create Bill </button> <button class="nav-btn" onclick="showSection('inventory', this); closeMobileMenu();" > 📦 Inventory </button> <button class="nav-btn" onclick="showSection('bills', this); closeMobileMenu();" > 🧾 View Bills </button> <button class="nav-btn" onclick="showSection('dashboard', this); closeMobileMenu();" > 📊 Dashboard </button> <button class="nav-btn" onclick="showSection('reports', this); closeMobileMenu();" > 📈 Reports </button> <button class="nav-btn" onclick="showSection('settings', this); closeMobileMenu();" > ⚙️ Settings </button> </nav> </header>
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="section">
+        <div class="section-header">
+          <h2>📊 Dashboard</h2>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card fancy">
+            <h3>Fancy Items</h3>
+            <p class="stat-number" id="fancy-count">0</p>
+            <p class="stat-label">Total Items</p>
+          </div>
+          <div class="stat-card electronics">
+            <h3>Electronics</h3>
+            <p class="stat-number" id="electronics-count">0</p>
+            <p class="stat-label">Total Items</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Inventory Value</h3>
+            <p class="stat-number" id="total-value">₹0</p>
+            <p class="stat-label">Current Stock Value</p>
+          </div>
+          <div class="stat-card">
+            <h3>Total Bills</h3>
+            <p class="stat-number" id="total-bills">0</p>
+            <p class="stat-label">All Time Sales</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inventory Section -->
+      <section id="inventory" class="section">
+        <div class="section-header">
+          <h2>📦 Product Inventory</h2>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <button class="btn btn-primary" onclick="openAddItemModal()">
+              ➕ Add New Product
+            </button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <button class="filter-btn active" onclick="filterInventory('all')">
+            All Items
+          </button>
+          <button class="filter-btn" onclick="filterInventory('fancy')">
+            Fancy Items
+          </button>
+          <button class="filter-btn" onclick="filterInventory('electronics')">
+            Electronics
+          </button>
+          <input
+            type="text"
+            id="search-inventory"
+            placeholder="🔍 Search products..."
+            oninput="searchInventory()"
+          />
+        </div>
+
+        <div class="inventory-grid" id="inventory-grid">
+          <!-- Inventory items will be displayed here -->
+        </div>
+      </section>
+
+      <!-- Billing Section -->
+      <section id="billing" class="section active">
+        <div class="billing-container">
+          <div class="billing-left">
+            <h2>📝 Create New Bill</h2>
+            <div class="customer-info">
+              <div class="input-group">
+                <label>Customer Name</label>
+                <input
+                  type="text"
+                  id="customer-name"
+                  placeholder="Enter customer name"
+                />
+              </div>
+              <div class="input-group">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  id="customer-phone"
+                  placeholder="Enter phone number"
+                />
+              </div>
+            </div>
+            <div class="product-search-section">
+              <div class="search-box-wrapper">
+                <input
+                  type="text"
+                  id="product-search-billing"
+                  placeholder="🔍 Search product by name..."
+                  oninput="searchBillingProducts()"
+                />
+                <button
+                  class="btn-search"
+                  onclick="focusSearch()"
+                  title="Search Product"
+                >
+                  🔍
                 </button>
+              </div>
             </div>
-            <nav id="main-nav" class="desktop-nav">
-                <button class="nav-btn active" onclick="showSection('billing', this); closeMobileMenu();">📝 Create Bill</button>
-                <button class="nav-btn" onclick="showSection('inventory', this); closeMobileMenu();">📦 Inventory</button>
-                <button class="nav-btn" onclick="showSection('bills', this); closeMobileMenu();">🧾 View Bills</button>
-                <button class="nav-btn" onclick="showSection('dashboard', this); closeMobileMenu();">📊 Dashboard</button>
-                <button class="nav-btn" onclick="showSection('reports', this); closeMobileMenu();">📈 Reports</button>
-                <button class="nav-btn" onclick="showSection('settings', this); closeMobileMenu();">⚙️ Settings</button>
-            </nav>
-        </header>
+            <div class="category-tabs">
+              <button
+                class="category-tab active"
+                onclick="filterBillingItems('all')"
+              >
+                All Products
+              </button>
+              <button
+                class="category-tab"
+                onclick="filterBillingItems('fancy')"
+              >
+                Fancy Items
+              </button>
+              <button
+                class="category-tab"
+                onclick="filterBillingItems('electronics')"
+              >
+                Electronics
+              </button>
+            </div>
+            <div class="billing-items-grid" id="billing-items-grid">
+              <!-- Items for billing will be displayed here -->
+            </div>
+          </div>
+          <div class="billing-right">
+            <h2>🛒 Your Cart</h2>
+            <div class="cart-items" id="cart-items">
+              <p class="empty-cart">No items added yet</p>
+            </div>
+            <div class="cart-summary">
+              <div class="summary-row total">
+                <span>Total Amount:</span>
+                <span id="total-amount">₹0</span>
+              </div>
+              <div id="payment-section" style="display: none">
+                <div class="payment-method-selection" style="margin: 15px 0">
+                  <label
+                    style="
+                      display: block;
+                      margin-bottom: 10px;
+                      font-weight: 600;
+                    "
+                    >Payment Method:</label
+                  >
+                  <select
+                    id="payment-method"
+                    class="form-input"
+                    style="
+                      width: 100%;
+                      padding: 10px;
+                      border: 2px solid var(--border-color);
+                      border-radius: 8px;
+                      font-size: 16px;
+                    "
+                  >
+                    <option value="cash">💰 Cash</option>
+                    <option value="online">📱 Online Payment</option>
+                  </select>
+                </div>
+                <div
+                  id="qr-section"
+                  style="
+                    display: none;
+                    text-align: center;
+                    margin: 20px 0;
+                    padding: 20px;
+                    background: #f8f9fa;
+                    border-radius: 12px;
+                  "
+                >
+                  <h4 style="margin-bottom: 15px">Scan QR Code to Pay</h4>
+                  <div id="payment-qr" style="display: inline-block"></div>
+                </div>
+                <button
+                  class="btn btn-primary btn-large"
+                  onclick="processPayment()"
+                  style="width: 100%; margin-top: 10px"
+                >
+                  💳 Pay Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <!-- Dashboard Section -->
-        <section id="dashboard" class="section">
-            <div class="section-header">
-                <h2>📊 Dashboard</h2>
-                <button class="btn btn-primary" onclick="initializeSampleInventory()" id="init-btn" style="display: none;">📦 Load Sample Items</button>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card fancy">
-                    <h3>Fancy Items</h3>
-                    <p class="stat-number" id="fancy-count">0</p>
-                    <p class="stat-label">Total Items</p>
-                </div>
-                <div class="stat-card electronics">
-                    <h3>Electronics</h3>
-                    <p class="stat-number" id="electronics-count">0</p>
-                    <p class="stat-label">Total Items</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Inventory Value</h3>
-                    <p class="stat-number" id="total-value">₹0</p>
-                    <p class="stat-label">Current Stock Value</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Bills</h3>
-                    <p class="stat-number" id="total-bills">0</p>
-                    <p class="stat-label">All Time Sales</p>
-                </div>
-            </div>
-        </section>
+      <!-- View Bills Section -->
+      <section id="bills" class="section">
+        <h2>🧾 All Bills</h2>
+        <div class="bills-list" id="bills-list">
+          <!-- Bills will be displayed here -->
+        </div>
+      </section>
 
-        <!-- Inventory Section -->
-        <section id="inventory" class="section">
-            <div class="section-header">
-                <h2>📦 Product Inventory</h2>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-secondary" onclick="initializeSampleInventory()" id="init-btn-inv" style="display: none;">📦 Load Sample Items</button>
-                    <button class="btn btn-primary" onclick="openAddItemModal()">➕ Add New Product</button>
-                </div>
-            </div>
-            
-            <div class="filters">
-                <button class="filter-btn active" onclick="filterInventory('all')">All Items</button>
-                <button class="filter-btn" onclick="filterInventory('fancy')">Fancy Items</button>
-                <button class="filter-btn" onclick="filterInventory('electronics')">Electronics</button>
-                <input type="text" id="search-inventory" placeholder="🔍 Search products..." oninput="searchInventory()">
-            </div>
+      <!-- Reports Section -->
+      <section id="reports" class="section">
+        <h2>📈 Sales Reports</h2>
+        <div class="reports-container">
+          <div class="report-tabs">
+            <button
+              class="report-tab active"
+              onclick="showReport('daily', this)"
+            >
+              Daily Report
+            </button>
+            <button class="report-tab" onclick="showReport('monthly', this)">
+              Monthly Report
+            </button>
+            <button class="report-tab" onclick="showReport('yearly', this)">
+              Yearly Report
+            </button>
+          </div>
 
-            <div class="inventory-grid" id="inventory-grid">
-                <!-- Inventory items will be displayed here -->
-            </div>
-        </section>
+          <div class="report-controls" id="report-controls">
+            <!-- Date/Year selectors will be inserted here -->
+          </div>
 
-        <!-- Billing Section -->
-        <section id="billing" class="section active">
-            <div class="billing-container">
-                <div class="billing-left">
-                    <h2>📝 Create New Bill</h2>
-                    <div class="customer-info">
-                        <div class="input-group">
-                            <label>Customer Name</label>
-                            <input type="text" id="customer-name" placeholder="Enter customer name">
-                        </div>
-                        <div class="input-group">
-                            <label>Phone Number</label>
-                            <input type="text" id="customer-phone" placeholder="Enter phone number">
-                        </div>
-                    </div>
-                    <div class="product-search-section">
-                        <div class="search-box-wrapper">
-                            <input type="text" id="product-search-billing" placeholder="🔍 Search product by name..." oninput="searchBillingProducts()">
-                            <button class="btn-search" onclick="focusSearch()" title="Search Product">🔍</button>
-                        </div>
-                    </div>
-                    <div class="category-tabs">
-                        <button class="category-tab active" onclick="filterBillingItems('all')">All Products</button>
-                        <button class="category-tab" onclick="filterBillingItems('fancy')">Fancy Items</button>
-                        <button class="category-tab" onclick="filterBillingItems('electronics')">Electronics</button>
-                    </div>
-                    <div class="billing-items-grid" id="billing-items-grid">
-                        <!-- Items for billing will be displayed here -->
-                    </div>
-                </div>
-                <div class="billing-right">
-                    <h2>🛒 Your Cart</h2>
-                    <div class="cart-items" id="cart-items">
-                        <p class="empty-cart">No items added yet</p>
-                    </div>
-                    <div class="cart-summary">
-                        <div class="summary-row total">
-                            <span>Total Amount:</span>
-                            <span id="total-amount">₹0</span>
-                        </div>
-                        <div id="payment-section" style="display: none;">
-                            <div class="payment-method-selection" style="margin: 15px 0;">
-                                <label style="display: block; margin-bottom: 10px; font-weight: 600;">Payment Method:</label>
-                                <select id="payment-method" class="form-input" style="width: 100%; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 16px;">
-                                    <option value="cash">💰 Cash</option>
-                                    <option value="online">📱 Online Payment</option>
-                                </select>
-                            </div>
-                            <div id="qr-section" style="display: none; text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 12px;">
-                                <h4 style="margin-bottom: 15px;">Scan QR Code to Pay</h4>
-                                <div id="payment-qr" style="display: inline-block;"></div>
-                            </div>
-                            <button class="btn btn-primary btn-large" onclick="processPayment()" style="width: 100%; margin-top: 10px;">💳 Pay Now</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+          <div class="report-content" id="report-content">
+            <!-- Report data will be displayed here -->
+          </div>
+        </div>
+      </section>
 
-        <!-- View Bills Section -->
-        <section id="bills" class="section">
-            <h2>🧾 All Bills</h2>
-            <div class="bills-list" id="bills-list">
-                <!-- Bills will be displayed here -->
-            </div>
-        </section>
-
-        <!-- Reports Section -->
-        <section id="reports" class="section">
-            <h2>📈 Sales Reports</h2>
-            <div class="reports-container">
-                <div class="report-tabs">
-                    <button class="report-tab active" onclick="showReport('daily', this)">Daily Report</button>
-                    <button class="report-tab" onclick="showReport('monthly', this)">Monthly Report</button>
-                    <button class="report-tab" onclick="showReport('yearly', this)">Yearly Report</button>
-                </div>
-                
-                <div class="report-controls" id="report-controls">
-                    <!-- Date/Year selectors will be inserted here -->
-                </div>
-
-                <div class="report-content" id="report-content">
-                    <!-- Report data will be displayed here -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Settings Section -->
-        <section id="settings" class="section">
-            <h2>⚙️ Settings</h2>
-            <div class="settings-container">
-                <div class="setting-card">
-                    <h3>UPI Payment Settings</h3>
-                    <label>
-                        UPI ID (e.g., yourname@paytm / yourname@ybl):
-                        <input type="text" id="upi-id" placeholder="yourname@paytm" value="saravanastores@paytm">
-                    </label>
-                    <label>
-                        Payee Name:
-                        <input type="text" id="payee-name" placeholder="Saravana Stores" value="Saravana Stores">
-                    </label>
-                    <button class="btn btn-primary" onclick="saveUPISettings()">Save Settings</button>
-                    <p class="setting-note">The UPI ID will be used to generate payment QR codes on bills</p>
-                </div>
-            </div>
-        </section>
+      <!-- Settings Section -->
+      <section id="settings" class="section">
+        <h2>⚙️ Settings</h2>
+        <div class="settings-container">
+          <div class="setting-card">
+            <h3>UPI Payment Settings</h3>
+            <label>
+              UPI ID (e.g., yourname@paytm / yourname@ybl):
+              <input
+                type="text"
+                id="upi-id"
+                placeholder="yourname@paytm"
+                value="saravanastores@paytm"
+              />
+            </label>
+            <label>
+              Payee Name:
+              <input
+                type="text"
+                id="payee-name"
+                placeholder="Saravana Stores"
+                value="Saravana Stores"
+              />
+            </label>
+            <button class="btn btn-primary" onclick="saveUPISettings()">
+              Save Settings
+            </button>
+            <p class="setting-note">
+              The UPI ID will be used to generate payment QR codes on bills
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
 
     <!-- Add/Edit Item Modal -->
     <div id="item-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeItemModal()">&times;</span>
-            <h2 id="modal-title">Add New Item</h2>
-            <form id="item-form" onsubmit="saveItem(event)">
-                <input type="hidden" id="item-id">
-                <label>
-                    Item Name:
-                    <input type="text" id="item-name" required>
-                </label>
-                <label>
-                    Category:
-                    <select id="item-category" required>
-                        <option value="">Select Category</option>
-                        <option value="fancy">Fancy Items</option>
-                        <option value="electronics">Electronics</option>
-                    </select>
-                </label>
-                <label>
-                    Price (₹):
-                    <input type="number" id="item-price" step="0.01" required>
-                </label>
-                <label>
-                    Quantity:
-                    <input type="number" id="item-quantity" required>
-                </label>
-                <label>
-                    CODE:
-                    <input type="text" id="item-sku">
-                </label>
-                <label>
-                    Image URL:
-                    <input type="url" id="item-image" placeholder="https://example.com/image.jpg">
-                </label>
-                <label>
-                    Description:
-                    <textarea id="item-description"></textarea>
-                </label>
-                <div class="modal-buttons">
-                    <button type="submit" class="btn btn-primary">Save Item</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeItemModal()">Cancel</button>
-                </div>
-            </form>
-        </div>
+      <div class="modal-content">
+        <span class="close" onclick="closeItemModal()">&times;</span>
+        <h2 id="modal-title">Add New Item</h2>
+        <form id="item-form" onsubmit="saveItem(event)">
+          <input type="hidden" id="item-id" />
+          <label>
+            Item Name:
+            <input type="text" id="item-name" required />
+          </label>
+          <label>
+            Category:
+            <select id="item-category" required>
+              <option value="">Select Category</option>
+              <option value="fancy">Fancy Items</option>
+              <option value="electronics">Electronics</option>
+            </select>
+          </label>
+          <label>
+            Price (₹):
+            <input type="number" id="item-price" step="0.01" required />
+          </label>
+          <label>
+            Quantity:
+            <input type="number" id="item-quantity" required />
+          </label>
+          <label>
+            CODE:
+            <input type="text" id="item-sku" />
+          </label>
+          <label>
+            Image URL:
+            <input
+              type="url"
+              id="item-image"
+              placeholder="https://example.com/image.jpg"
+            />
+          </label>
+          <label>
+            Description:
+            <textarea id="item-description"></textarea>
+          </label>
+          <div class="modal-buttons">
+            <button type="submit" class="btn btn-primary">Save Item</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeItemModal()"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Bill View Modal -->
     <div id="bill-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeBillModal()">&times;</span>
-            <div id="bill-content">
-                <!-- Bill will be displayed here -->
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn btn-primary" onclick="printBill()">Print Bill</button>
-            </div>
+      <div class="modal-content">
+        <span class="close" onclick="closeBillModal()">&times;</span>
+        <div id="bill-content">
+          <!-- Bill will be displayed here -->
         </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px">
+          <button class="btn btn-primary" onclick="printBill()">
+            Print Bill
+          </button>
+        </div>
+      </div>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
