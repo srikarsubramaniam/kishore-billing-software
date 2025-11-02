@@ -36,9 +36,12 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    display: grid;
+    grid-template-columns: 260px 1fr; /* sidebar + content */
+    gap: 20px;
 }
 
 header {
@@ -54,6 +57,8 @@ header {
     border: 1px solid rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
 }
+
+header { grid-column: 1 / -1; }
 
 .header-content {
     display: flex;
@@ -71,6 +76,14 @@ header h1 {
     font-size: 36px;
     font-weight: 800;
     letter-spacing: -0.5px;
+}
+
+/* Hide nav on Home screen for a cleaner hero */
+body.on-home nav.desktop-nav {
+    display: none !important;
+}
+body.on-home .header-content {
+    margin-bottom: 0;
 }
 
 .mobile-menu-toggle {
@@ -147,7 +160,56 @@ nav {
 
 .section.active {
     display: block;
+    grid-column: 2; /* content area next to sidebar */
 }
+
+/* Sidebar (Desktop) */
+.sidebar {
+    grid-column: 1;
+    grid-row: 2 / -1;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255,255,255,0.8);
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+.sidebar-title {
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: var(--primary-color);
+}
+
+.sidebar-nav { display: grid; gap: 8px; }
+.side-nav-btn {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    font-weight: 600;
+}
+.side-nav-btn:hover { border-color: var(--primary-color); }
+.side-nav-btn.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+
+/* Bottom Navigation (Mobile) */
+.bottom-nav {
+    display: none;
+}
+.bottom-nav-btn {
+    background: transparent;
+    border: none;
+    font: inherit;
+    color: var(--text-primary);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.bottom-nav-btn span { font-size: 12px; }
+.bottom-nav-btn.active { color: var(--primary-color); }
 
 /* Ensure sections don't overlap mobile menu */
 @media (max-width: 768px) {
@@ -176,6 +238,67 @@ h2 {
     margin-bottom: 20px;
     font-size: 26px;
     font-weight: 700;
+}
+
+/* Home screen */
+.home-hero {
+    text-align: center;
+    margin: 10px 0 20px;
+}
+
+.home-hero h2 {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.home-hero p {
+    color: var(--text-secondary);
+}
+
+.home-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.home-tile {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    padding: 18px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255,255,255,0.8);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.home-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.tile-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.tile-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.tile-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .home-tiles {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .tile-icon { font-size: 24px; }
 }
 
 .stats-grid {
@@ -1262,16 +1385,20 @@ h2 {
 @media (max-width: 768px) {
     .container {
         padding: 10px;
+        display: block; /* stack */
     }
+    body { padding-bottom: 90px; }
     
     header {
-        padding: 15px 20px;
+        padding: 12px 14px;
+        position: static; /* Avoid floating overlay on mobile */
+        box-shadow: var(--shadow-md);
+        margin-bottom: 8px;
     }
     
     .header-content {
         margin-bottom: 0;
-        justify-content: flex-start;
-        gap: 12px;
+        justify-content: space-between;
     }
     
     header h1 {
@@ -1279,40 +1406,37 @@ h2 {
     }
     
     .mobile-menu-toggle {
-        display: flex;
-        order: -1; /* Move hamburger to the left on mobile */
+        display: none; /* Hide hamburger on mobile as nav is always visible */
     }
     
-    nav.desktop-nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 280px; /* Left drawer width */
-        max-width: 85%;
-        height: 100%;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        flex-direction: column;
-        padding: 70px 20px 20px 20px; /* space for header */
-        box-shadow: var(--shadow-xl);
-        z-index: 10000;
-        transition: transform 0.3s ease;
-        transform: translateX(-100%); /* hidden to the left */
-        overflow-y: auto;
-        display: flex !important;
-        -webkit-overflow-scrolling: touch;
-    }
+    nav.desktop-nav { display: none !important; }
 
     nav.desktop-nav.mobile-nav-open {
-        transform: translateX(0); /* slide in from left */
+        transform: none;
     }
     
-    .nav-btn {
-        width: 100%;
-        padding: 16px;
-        font-size: 16px;
-        text-align: left;
-        margin-bottom: 8px;
-        border-radius: 12px;
+    .nav-btn { display: none; }
+
+    /* Hide sidebar on mobile */
+    .sidebar { display: none; }
+
+    /* Show bottom nav */
+    .bottom-nav {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 24px);
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.9);
+        border-radius: 14px;
+        padding: 10px;
+        box-shadow: var(--shadow-lg);
+        z-index: 10002;
     }
     
     .billing-container {
@@ -1349,9 +1473,15 @@ h2 {
         to { opacity: 1; }
     }
 
-    /* Do not push content when drawer is open */
-    body.menu-open .container {
-        padding-top: 120px; /* keep base spacing for fixed header */
+    /* No extra offset since header is not fixed on mobile */
+    body.menu-open .container,
+    .container {
+        padding-top: 16px;
+    }
+
+    /* Hide horizontal scrollbar on webkit */
+    nav.desktop-nav::-webkit-scrollbar {
+        display: none;
     }
 
     /* Prevent body scroll when menu is open */

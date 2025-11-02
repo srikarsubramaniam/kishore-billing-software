@@ -5,36 +5,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Saravana Stores - Billing Software</title>
     <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] },
+            colors: {
+              brand: { DEFAULT: '#4f46e5' },
+              accent: '#7c3aed'
+            },
+            borderRadius: { 'xl': '1rem', '2xl': '1.25rem' }
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   </head>
   <body>
     <div class="container">
-      <header> <div class="header-content"> <h1>🏪 Saravana Stores</h1> <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Menu" > <span></span> <span></span> <span></span> </button> </div> <nav id="main-nav" class="desktop-nav"> <button class="nav-btn active" onclick="showSection('billing', this); closeMobileMenu();" > 📝 Create Bill </button> <button class="nav-btn" onclick="showSection('inventory', this); closeMobileMenu();" > 📦 Inventory </button> <button class="nav-btn" onclick="showSection('bills', this); closeMobileMenu();" > 🧾 View Bills </button> <button class="nav-btn" onclick="showSection('dashboard', this); closeMobileMenu();" > 📊 Dashboard </button> <button class="nav-btn" onclick="showSection('reports', this); closeMobileMenu();" > 📈 Reports </button> <button class="nav-btn" onclick="showSection('settings', this); closeMobileMenu();" > ⚙️ Settings </button> </nav> </header>
+      <!-- Top Bar -->
+      <header class="sticky top-0 z-50 bg-white/80 backdrop-blur shadow-xl rounded-2xl px-6 py-4 mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-md">
+            <i data-lucide="store"></i>
+          </div>
+          <div>
+            <div class="text-lg font-extrabold text-slate-800 leading-tight">Saravana Stores</div>
+            <div class="text-xs text-slate-500 -mt-1">Billing Dashboard</div>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-3 flex-1 max-w-xl mx-6">
+          <div class="relative w-full">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+            <input type="text" placeholder="Search bills, products..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/70" />
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-600 text-white shadow hover:bg-indigo-700" onclick="openSection('billing')">
+            <i data-lucide="receipt"></i>
+            <span class="font-semibold">New Bill</span>
+          </button>
+          <div class="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center">
+            <i data-lucide="user"></i>
+          </div>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-5">
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside id="app-sidebar" class="hidden lg:block bg-white rounded-2xl shadow-xl p-4 h-max">
+          <div class="text-slate-800 font-extrabold mb-3">Menu</div>
+          <nav class="space-y-2">
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="home" onclick="showSection('home', this)"><i data-lucide="home"></i><span>Home</span></button>
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="billing" onclick="showSection('billing', this)"><i data-lucide="receipt"></i><span>Create Bill</span></button>
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="inventory" onclick="showSection('inventory', this)"><i data-lucide="package"></i><span>Inventory</span></button>
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="bills" onclick="showSection('bills', this)"><i data-lucide="file-text"></i><span>View Bills</span></button>
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="dashboard" onclick="showSection('dashboard', this)"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></button>
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="reports" onclick="showSection('reports', this)"><i data-lucide="bar-chart-3"></i><span>Reports</span></button>
+            <button class="side-nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl border border-slate-200 hover:border-indigo-500" data-section="settings" onclick="showSection('settings', this)"><i data-lucide="settings"></i><span>Settings</span></button>
+          </nav>
+        </aside>
+        
+        <div class="min-w-0">
+      <!-- Home Section -->
+      <section id="home" class="section active">
+        <div class="home-hero">
+          <h2>Welcome 👋</h2>
+          <p>Select an option to get started</p>
+        </div>
+        <div class="home-tiles">
+          <div class="home-tile" onclick="openSection('billing')">
+            <div class="tile-icon">📝</div>
+            <div class="tile-title">Create Bill</div>
+            <div class="tile-sub">Start a new sale</div>
+          </div>
+          <div class="home-tile" onclick="openSection('inventory')">
+            <div class="tile-icon">📦</div>
+            <div class="tile-title">Inventory</div>
+            <div class="tile-sub">Manage products</div>
+          </div>
+          <div class="home-tile" onclick="openSection('bills')">
+            <div class="tile-icon">🧾</div>
+            <div class="tile-title">View Bills</div>
+            <div class="tile-sub">All past bills</div>
+          </div>
+          <div class="home-tile" onclick="openSection('dashboard')">
+            <div class="tile-icon">📊</div>
+            <div class="tile-title">Dashboard</div>
+            <div class="tile-sub">Quick stats</div>
+          </div>
+          <div class="home-tile" onclick="openSection('reports')">
+            <div class="tile-icon">📈</div>
+            <div class="tile-title">Reports</div>
+            <div class="tile-sub">Daily/Monthly</div>
+          </div>
+          <div class="home-tile" onclick="openSection('settings')">
+            <div class="tile-icon">⚙️</div>
+            <div class="tile-title">Settings</div>
+            <div class="tile-sub">App preferences</div>
+          </div>
+        </div>
+      </section>
       <!-- Dashboard Section -->
       <section id="dashboard" class="section">
-        <div class="section-header">
-          <h2>📊 Dashboard</h2>
+        <div class="mb-5">
+          <h2 class="text-xl font-extrabold text-slate-800">📊 Dashboard</h2>
+          <p class="text-slate-500 text-sm">Key stats and trends</p>
         </div>
-        <div class="stats-grid">
-          <div class="stat-card fancy">
-            <h3>Fancy Items</h3>
-            <p class="stat-number" id="fancy-count">0</p>
-            <p class="stat-label">Total Items</p>
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+          <div class="bg-white rounded-2xl shadow-xl p-5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-slate-500 text-sm">Fancy Items</span>
+              <i data-lucide="star" class="text-amber-500"></i>
+            </div>
+            <div id="fancy-count" class="text-3xl font-extrabold">0</div>
+            <div class="text-slate-400 text-xs">Total Items</div>
           </div>
-          <div class="stat-card electronics">
-            <h3>Electronics</h3>
-            <p class="stat-number" id="electronics-count">0</p>
-            <p class="stat-label">Total Items</p>
+          <div class="bg-white rounded-2xl shadow-xl p-5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-slate-500 text-sm">Electronics</span>
+              <i data-lucide="cpu" class="text-indigo-600"></i>
+            </div>
+            <div id="electronics-count" class="text-3xl font-extrabold">0</div>
+            <div class="text-slate-400 text-xs">Total Items</div>
           </div>
-          <div class="stat-card">
-            <h3>Total Inventory Value</h3>
-            <p class="stat-number" id="total-value">₹0</p>
-            <p class="stat-label">Current Stock Value</p>
+          <div class="bg-white rounded-2xl shadow-xl p-5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-slate-500 text-sm">Inventory Value</span>
+              <i data-lucide="wallet" class="text-emerald-600"></i>
+            </div>
+            <div id="total-value" class="text-3xl font-extrabold">₹0</div>
+            <div class="text-slate-400 text-xs">Current Stock Value</div>
           </div>
-          <div class="stat-card">
-            <h3>Total Bills</h3>
-            <p class="stat-number" id="total-bills">0</p>
-            <p class="stat-label">All Time Sales</p>
+          <div class="bg-white rounded-2xl shadow-xl p-5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-slate-500 text-sm">Total Bills</span>
+              <i data-lucide="file-text" class="text-violet-600"></i>
+            </div>
+            <div id="total-bills" class="text-3xl font-extrabold">0</div>
+            <div class="text-slate-400 text-xs">All Time</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl shadow-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-700">Sales Trend</h3>
+            </div>
+            <canvas id="salesTrendChart" height="140"></canvas>
+          </div>
+          <div class="bg-white rounded-2xl shadow-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-700">Category Split</h3>
+            </div>
+            <canvas id="categorySplitChart" height="140"></canvas>
           </div>
         </div>
       </section>
@@ -74,7 +205,7 @@
       </section>
 
       <!-- Billing Section -->
-      <section id="billing" class="section active">
+      <section id="billing" class="section">
         <div class="billing-container">
           <div class="billing-left">
             <h2>📝 Create New Bill</h2>
@@ -270,6 +401,15 @@
         </div>
       </section>
     </div>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav">
+      <button class="bottom-nav-btn" data-section="home" onclick="openSection('home')">🏠<span>Home</span></button>
+      <button class="bottom-nav-btn" data-section="billing" onclick="openSection('billing')">📝<span>Bill</span></button>
+      <button class="bottom-nav-btn" data-section="inventory" onclick="openSection('inventory')">📦<span>Inventory</span></button>
+      <button class="bottom-nav-btn" data-section="bills" onclick="openSection('bills')">🧾<span>Bills</span></button>
+      <button class="bottom-nav-btn" data-section="settings" onclick="openSection('settings')">⚙️<span>Settings</span></button>
+    </nav>
 
     <!-- Add/Edit Item Modal -->
     <div id="item-modal" class="modal">

@@ -15,6 +15,12 @@ async function loadInventory() {
     document.getElementById('inventory-grid').innerHTML =
       '<p style="grid-column: 1/-1; text-align: center; color: red;">Failed to load inventory</p>';
   }
+
+// Helper used by Home tiles
+function openSection(sectionId) {
+    closeMobileMenu();
+    showSection(sectionId, null);
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
 }
 
 let inventory = [];
@@ -33,10 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBills();
     updateDashboard();
     loadUPISettings();
-    // Show billing section by default on mobile
-    if (window.innerWidth <= 768) {
-        showSection('billing', null);
-    }
+    // Show Home section by default
+    showSection('home', null);
+    // Initialize Lucide icons on first load
+    try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
+    // Prepare dashboard demo charts if dashboard becomes visible
+    setTimeout(() => { try { renderDashboardCharts(); } catch (_) {} }, 0);
 });
 
 // Format numbers with commas (Indian numbering system)
@@ -199,10 +207,32 @@ function showSection(sectionId, element) {
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
+    document.querySelectorAll('.side-nav-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.bottom-nav-btn').forEach(btn => btn.classList.remove('active'));
     
-    document.getElementById(sectionId).classList.add('active');
+    const target = document.getElementById(sectionId);
+    if (target) target.classList.add('active');
     if (element) {
         element.classList.add('active');
+    } else {
+        // Try to activate the corresponding nav button based on its onclick
+        const candidates = Array.from(document.querySelectorAll('.nav-btn'));
+        const match = candidates.find(b => (b.getAttribute('onclick') || '').includes(`'${sectionId}'`));
+        if (match) match.classList.add('active');
+    }
+
+    // Activate sidebar and bottom nav buttons
+    const sideBtn = document.querySelector(`.side-nav-btn[data-section="${sectionId}"]`);
+    if (sideBtn) sideBtn.classList.add('active');
+    const bottomBtn = document.querySelector(`.bottom-nav-btn[data-section="${sectionId}"]`);
+    if (bottomBtn) bottomBtn.classList.add('active');
+
+    // Toggle header/nav visibility on Home
+    const body = document.body;
+    if (sectionId === 'home') {
+        body.classList.add('on-home');
+    } else {
+        body.classList.remove('on-home');
     }
     
     if (sectionId === 'inventory') {
@@ -245,6 +275,62 @@ function showSection(sectionId, element) {
                 showReport('daily', null);
             }
         }, 150);
+    }
+    if (sectionId === 'dashboard') {
+        // Ensure icons and charts are rendered on navigation
+        try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
+        try { renderDashboardCharts(); } catch (_) {}
+    }
+}
+
+// Dashboard Charts (Chart.js demo)
+let salesChartRef = null;
+let categoryChartRef = null;
+function renderDashboardCharts() {
+    const salesCtx = document.getElementById('salesTrendChart');
+    const categoryCtx = document.getElementById('categorySplitChart');
+    if (salesCtx) {
+        if (salesChartRef) { salesChartRef.destroy(); }
+        salesChartRef = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [{
+                    label: 'Sales (₹)',
+                    data: [1200, 1800, 900, 2200, 2600, 3200, 2100],
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79,70,229,0.15)',
+                    tension: 0.35,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: 'rgba(0,0,0,0.06)' } }
+                }
+            }
+        });
+    }
+    if (categoryCtx) {
+        if (categoryChartRef) { categoryChartRef.destroy(); }
+        categoryChartRef = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fancy','Electronics','Others'],
+                datasets: [{
+                    data: [35, 45, 20],
+                    backgroundColor: ['#f59e0b','#4f46e5','#10b981'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                cutout: '60%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
     }
 }
 
