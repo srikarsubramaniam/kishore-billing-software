@@ -12,10 +12,15 @@ async function loadInventory() {
     checkInventoryEmpty();
   } catch (error) {
     console.error('Error loading inventory:', error);
-    document.getElementById('inventory-grid').innerHTML =
-      '<p style="grid-column: 1/-1; text-align: center; color: red;">Failed to load inventory</p>';
+    const grid = document.getElementById('inventory-grid');
+    if (Array.isArray(inventory) && inventory.length > 0) {
+      // Show whatever we have cached
+      try { displayInventory(); } catch (_) {}
+    } else if (grid) {
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 24px;">No products to show</p>';
+    }
   }
-
+}
 // Helper used by Home tiles
 function openSection(sectionId) {
     closeMobileMenu();
@@ -39,12 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBills();
     updateDashboard();
     loadUPISettings();
-    // Show Home section by default
-    showSection('home', null);
+    // Show Dashboard section by default to match new layout
+    showSection('dashboard', null);
+    // Set today's date in header
+    try {
+        const d = new Date();
+        const el = document.getElementById('today-date');
+        if (el) el.textContent = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (_) {}
     // Initialize Lucide icons on first load
     try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
-    // Prepare dashboard demo charts if dashboard becomes visible
-    setTimeout(() => { try { renderDashboardCharts(); } catch (_) {} }, 0);
+    // Charts will render when Dashboard is opened
 });
 
 // Format numbers with commas (Indian numbering system)
@@ -206,6 +216,9 @@ function showSection(sectionId, element) {
     });
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
+        // Outline style (default)
+        btn.classList.remove('bg-indigo-600','text-white','shadow');
+        btn.classList.add('bg-white','text-slate-700','border','border-slate-300');
     });
     document.querySelectorAll('.side-nav-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.bottom-nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -214,11 +227,18 @@ function showSection(sectionId, element) {
     if (target) target.classList.add('active');
     if (element) {
         element.classList.add('active');
+        // Primary style for active button
+        element.classList.add('bg-indigo-600','text-white','shadow');
+        element.classList.remove('bg-white','text-slate-700');
     } else {
         // Try to activate the corresponding nav button based on its onclick
         const candidates = Array.from(document.querySelectorAll('.nav-btn'));
         const match = candidates.find(b => (b.getAttribute('onclick') || '').includes(`'${sectionId}'`));
-        if (match) match.classList.add('active');
+        if (match) {
+            match.classList.add('active');
+            match.classList.add('bg-indigo-600','text-white','shadow');
+            match.classList.remove('bg-white','text-slate-700');
+        }
     }
 
     // Activate sidebar and bottom nav buttons
@@ -281,14 +301,16 @@ function showSection(sectionId, element) {
         try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
         try { renderDashboardCharts(); } catch (_) {}
     }
+    // Render icons for any dynamic content
+    try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
 }
 
 // Dashboard Charts (Chart.js demo)
 let salesChartRef = null;
-let categoryChartRef = null;
+let categoryChartRef = null; // no longer used (Category Split removed)
 function renderDashboardCharts() {
     const salesCtx = document.getElementById('salesTrendChart');
-    const categoryCtx = document.getElementById('categorySplitChart');
+    // Category Split removed
     if (salesCtx) {
         if (salesChartRef) { salesChartRef.destroy(); }
         salesChartRef = new Chart(salesCtx, {
@@ -314,24 +336,7 @@ function renderDashboardCharts() {
             }
         });
     }
-    if (categoryCtx) {
-        if (categoryChartRef) { categoryChartRef.destroy(); }
-        categoryChartRef = new Chart(categoryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Fancy','Electronics','Others'],
-                datasets: [{
-                    data: [35, 45, 20],
-                    backgroundColor: ['#f59e0b','#4f46e5','#10b981'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                cutout: '60%',
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    }
+    // No second chart
 }
 
 // Search functionality for billing
@@ -364,7 +369,11 @@ function searchBillingProducts() {
     grid.innerHTML = filteredInventory.map(item => `
         <div class="billing-item ${item.quantity === 0 ? 'out-of-stock' : ''}" 
              onclick="${item.quantity > 0 ? `addToCart('${item.id}')` : ''}">
-            ${item.image ? `<div class="billing-item-image"><img src="${item.image}" alt="${item.name}" onerror="this.style.display='none'"></div>` : ''}
+            ${item.image ? `<div class="billing-item-image">
+                <img src="${item.image}" alt="${item.name}"
+                     referrerpolicy="no-referrer" crossorigin="anonymous"
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/160?text=No+Image';">
+            </div>` : ''}
             <div class="billing-item-name">${item.name}</div>
             <div class="billing-item-price">${formatCurrency(item.price)}</div>
             <div class="billing-item-qty">Stock: ${item.quantity}</div>
@@ -466,7 +475,7 @@ function displayInventory() {
     
     grid.innerHTML = filteredInventory.map(item => `
         <div class="inventory-item ${item.category}">
-            ${item.image ? `<div class="item-image-container"><img src="${item.image}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/200?text=No+Image'"></div>` : ''}
+            ${item.image ? `<div class="item-image-container"><img src="${item.image}" alt="${item.name}" class="item-image" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null; this.src='https://via.placeholder.com/200?text=No+Image';"></div>` : ''}
             <div class="item-header">
                 <div>
                     <div class="item-name">${item.name}</div>
