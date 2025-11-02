@@ -34,7 +34,26 @@ const connectDB = async () => {
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files from public directory
+// Note: On Vercel, static files are also handled by explicit routes below
 app.use(express.static(path.join(__dirname, '../public')));
+
+// ============================================
+// HEALTH CHECK & TEST ROUTES
+// ============================================
+
+// Health check endpoint (useful for debugging)
+app.get('/health', async (req, res) => {
+  await connectDB();
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    platform: 'Vercel Serverless'
+  });
+});
 
 // ============================================
 // INVENTORY ROUTES
@@ -421,19 +440,34 @@ app.get('/api/reports/download/:type', async (req, res) => {
 });
 
 // ============================================
-// SERVE STATIC FILES
+// SERVE STATIC FILES AND FRONTEND
 // ============================================
 
-// Serve main page
+// Serve main page - MUST be after API routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-// Handle all other routes - serve index.html for SPA
+// Serve static assets (CSS, JS) - Explicit routes
+app.get('/styles.css', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/styles.css'));
+});
+
+app.get('/script.js', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/script.js'));
+});
+
+// Handle all other non-API routes - serve index.html for SPA
+// IMPORTANT: This must be last, after all API routes
 app.get('*', (req, res) => {
+  // Don't catch API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 // Export the Express app as a Vercel serverless function
+// Vercel will automatically use this as the handler
 module.exports = app;
 
