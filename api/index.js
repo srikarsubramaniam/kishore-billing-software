@@ -1,3 +1,4 @@
+console.log("🚀 Server starting...");
 // Vercel Serverless Function - Main API Entry Point
 require('dotenv').config();
 const express = require('express');
@@ -5,31 +6,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const mongoose = require('mongoose');
+const connectDB = require('../config/database');
 const Inventory = require('../models/Inventory');
 const Bill = require('../models/Bill');
 
 const app = express();
-
-// Connect to MongoDB Atlas (Optimized for serverless)
-const connectDB = async () => {
-  // Check if already connected (mongoose.connection.readyState: 1 = connected)
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
-    });
-    console.log("✅ MongoDB connected successfully");
-  } catch (err) {
-    console.error("❌ MongoDB connection failed:", err);
-    throw err; // Re-throw to let the route handler catch it
-  }
-};
 
 // Middleware
 app.use(cors());
@@ -46,13 +27,23 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Health check endpoint (useful for debugging)
 app.get('/health', async (req, res) => {
-  await connectDB();
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    platform: 'Vercel Serverless'
-  });
+  try {
+    await connectDB();
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+      platform: 'Render'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      platform: 'Render',
+      error: error.message
+    });
+  }
 });
 
 // ============================================
@@ -64,8 +55,10 @@ app.get('/api/inventory', async (req, res) => {
   await connectDB();
   try {
     const inventory = await Inventory.find().sort({ createdAt: -1 });
+    console.log('Inventory items found:', inventory.length);
     res.json(inventory);
   } catch (error) {
+    console.error('Error fetching inventory:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -467,7 +460,13 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-// Export the Express app as a Vercel serverless function
-// Vercel will automatically use this as the handler
-const serverless = require('serverless-http');
-module.exports = serverless(app);
+// Export the Express app for Render deployment
+module.exports = app;
+
+// Run locally only (not on Render)
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`✅ Server running locally on port ${PORT}`);
+  });
+}

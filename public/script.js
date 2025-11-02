@@ -1,4 +1,22 @@
 // Global state
+
+// Load inventory from backend
+async function loadInventory() {
+  try {
+    const res = await fetch('/api/inventory');
+    if (!res.ok) throw new Error('Failed to fetch inventory');
+
+    inventory = await res.json();
+    displayInventory();
+    updateDashboard();
+    checkInventoryEmpty();
+  } catch (error) {
+    console.error('Error loading inventory:', error);
+    document.getElementById('inventory-grid').innerHTML =
+      '<p style="grid-column: 1/-1; text-align: center; color: red;">Failed to load inventory</p>';
+  }
+}
+
 let inventory = [];
 let cart = [];
 let currentFilter = 'all';
@@ -279,17 +297,7 @@ function focusSearch() {
     document.getElementById('product-search-billing').focus();
 }
 
-// API Calls
-async function loadInventory() {
-    try {
-        const response = await fetch('/api/inventory');
-        inventory = await response.json();
-        displayInventory();
-        updateDashboard();
-    } catch (error) {
-        console.error('Error loading inventory:', error);
-    }
-}
+
 
 async function loadBills() {
     try {
@@ -451,21 +459,39 @@ function searchInventory() {
     `).join('');
 }
 
-function updateDashboard() {
-    const fancyCount = inventory.filter(item => item.category.toLowerCase() === 'fancy').length;
-    const electronicsCount = inventory.filter(item => item.category.toLowerCase() === 'electronics').length;
-    
-    const totalValue = inventory.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    document.getElementById('fancy-count').textContent = fancyCount;
-    document.getElementById('electronics-count').textContent = electronicsCount;
-    document.getElementById('total-value').textContent = formatIndianNumber(totalValue);
-    
-    fetch('/api/bills')
-        .then(res => res.json())
-        .then(bills => {
-            document.getElementById('total-bills').textContent = bills.length;
-        });
+async function updateDashboard() {
+    try {
+        // Load inventory data
+        const inventoryResponse = await fetch('/api/inventory');
+        if (!inventoryResponse.ok) {
+            throw new Error('Failed to fetch inventory');
+        }
+        inventory = await inventoryResponse.json();
+
+        const fancyCount = inventory.filter(item => item.category.toLowerCase() === 'fancy').length;
+        const electronicsCount = inventory.filter(item => item.category.toLowerCase() === 'electronics').length;
+
+        const totalValue = inventory.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        document.getElementById('fancy-count').textContent = fancyCount;
+        document.getElementById('electronics-count').textContent = electronicsCount;
+        document.getElementById('total-value').textContent = formatIndianNumber(totalValue);
+
+        // Load bills data
+        const billsResponse = await fetch('/api/bills');
+        if (!billsResponse.ok) {
+            throw new Error('Failed to fetch bills');
+        }
+        const bills = await billsResponse.json();
+        document.getElementById('total-bills').textContent = bills.length;
+    } catch (error) {
+        console.error('Error updating dashboard:', error);
+        // Set default values on error
+        document.getElementById('fancy-count').textContent = '0';
+        document.getElementById('electronics-count').textContent = '0';
+        document.getElementById('total-value').textContent = '₹0';
+        document.getElementById('total-bills').textContent = '0';
+    }
 }
 
 // Item Modal Functions
@@ -498,8 +524,14 @@ function closeItemModal() {
 
 // Billing Functions
 async function loadBillingItems() {
-    await loadInventory();
-    displayBillingItems();
+    try {
+        await loadInventory();
+        displayBillingItems();
+    } catch (error) {
+        console.error('Error loading billing items:', error);
+        document.getElementById('billing-items-grid').innerHTML =
+            '<p style="grid-column: 1/-1; text-align: center; color: red;">Failed to load products</p>';
+    }
 }
 
 function displayBillingItems() {
