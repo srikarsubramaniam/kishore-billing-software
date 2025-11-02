@@ -1,9 +1,16 @@
 // Global state
 
+// API base helper (supports production backend on different origin)
+const API_BASE = (localStorage.getItem('API_BASE') || (document.querySelector('meta[name="api-base"]')?.content) || '').trim();
+function api(path) {
+    const base = API_BASE ? API_BASE.replace(/\/$/, '') : '';
+    return base + path;
+}
+
 // Load inventory from backend
 async function loadInventory() {
   try {
-    const res = await fetch('/api/inventory');
+    const res = await fetch(api('/api/inventory'));
     if (!res.ok) throw new Error('Failed to fetch inventory');
 
     inventory = await res.json();
@@ -389,7 +396,7 @@ function focusSearch() {
 
 async function loadBills() {
     try {
-        const response = await fetch('/api/bills');
+        const response = await fetch(api('/api/bills'));
         const bills = await response.json();
         displayBills(bills);
         updateDashboard();
@@ -412,7 +419,7 @@ async function saveItem(event) {
     };
     
     const itemId = document.getElementById('item-id').value;
-    const url = itemId ? `/api/inventory/${itemId}` : '/api/inventory';
+    const url = itemId ? api(`/api/inventory/${itemId}`) : api('/api/inventory');
     const method = itemId ? 'PUT' : 'POST';
     
     try {
@@ -442,7 +449,7 @@ async function deleteItem(id) {
     }
     
     try {
-        const response = await fetch(`/api/inventory/${id}`, {
+        const response = await fetch(api(`/api/inventory/${id}`), {
             method: 'DELETE'
         });
         
@@ -809,7 +816,7 @@ async function generateBill() {
     };
     
     try {
-        const response = await fetch('/api/bills', {
+        const response = await fetch(api('/api/bills'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -870,7 +877,7 @@ function displayBills(bills) {
 
 async function viewBill(billId) {
     try {
-        const response = await fetch(`/api/bills/${billId}`);
+        const response = await fetch(api(`/api/bills/${billId}`));
         if (response.ok) {
             currentBill = await response.json();
             displayBillModal(currentBill);
@@ -1193,7 +1200,7 @@ async function loadReport(type, param1, param2) {
             reportContent.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading report...</p>';
         }
         
-        let url = `/api/reports/${type}?`;
+        let url = api(`/api/reports/${type}?`);
         if (type === 'daily') {
             const date = param1 || document.getElementById('report-date')?.value || new Date().toISOString().split('T')[0];
             url += `date=${date}`;
@@ -1231,7 +1238,7 @@ function downloadReport() {
         return;
     }
     
-    let url = `/api/reports/download/${currentReportParams.type}?`;
+    let url = api(`/api/reports/download/${currentReportParams.type}?`);
     if (currentReportParams.type === 'daily') {
         url += `date=${currentReportParams.date}`;
     } else if (currentReportParams.type === 'monthly') {
