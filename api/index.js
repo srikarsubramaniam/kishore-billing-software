@@ -469,5 +469,5 @@ app.get('*', (req, res) => {
 
 // Export the Express app as a Vercel serverless function
 // Vercel will automatically use this as the handler
-module.exports = app;
-
+const serverless = require('serverless-http');
+module.exports = serverless(app);

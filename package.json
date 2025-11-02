@@ -5,19 +5,8 @@
   "main": "server.cloud.js",
   "scripts": {
     "start": "node server.cloud.js",
-    "dev": "nodemon server.cloud.js", 
-    "local": "node server.local.js",
-    "build": "npm install",
-    "render-build": "npm install",
-    "vercel-build": "echo 'Vercel build complete'"
+    "dev": "nodemon server.cloud.js"
   },
-  "keywords": [
-    "billing",
-    "inventory",
-    "pos"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
