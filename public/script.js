@@ -215,6 +215,9 @@ function showSection(sectionId, element) {
         element.classList.add('active');
     }
     
+    if (sectionId === 'inventory') {
+        loadInventory();
+    }
     if (sectionId === 'billing') {
         loadBillingItems();
     }
