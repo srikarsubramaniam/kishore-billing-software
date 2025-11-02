@@ -1,46 +1,48 @@
+// Vercel Serverless Function - Main API Entry Point
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const connectDB = require('./config/database');
-const Inventory = require('./models/Inventory');
-const Bill = require('./models/Bill');
 const mongoose = require('mongoose');
+const Inventory = require('../models/Inventory');
+const Bill = require('../models/Bill');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware (set up before routes)
+// Connect to MongoDB Atlas (Optimized for serverless)
+const connectDB = async () => {
+  // Check if already connected (mongoose.connection.readyState: 1 = connected)
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+    });
+    console.log("✅ MongoDB connected successfully");
+  } catch (err) {
+    console.error("❌ MongoDB connection failed:", err);
+    throw err; // Re-throw to let the route handler catch it
+  }
+};
+
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // ============================================
-// ROUTES (Must be defined before server starts)
+// INVENTORY ROUTES
 // ============================================
-
-
-// Root route - Simple check for Vercel
-app.get('/', (req, res) => {
-  res.send('✅ Server running successfully on Vercel!');
-});
-
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    port: PORT
-  });
-});
 
 // Get all inventory items
 app.get('/api/inventory', async (req, res) => {
+  await connectDB();
   try {
     const inventory = await Inventory.find().sort({ createdAt: -1 });
     res.json(inventory);
@@ -51,6 +53,7 @@ app.get('/api/inventory', async (req, res) => {
 
 // Get inventory items by category
 app.get('/api/inventory/:category', async (req, res) => {
+  await connectDB();
   try {
     const category = req.params.category.toLowerCase();
     const inventory = await Inventory.find({ category }).sort({ createdAt: -1 });
@@ -62,6 +65,7 @@ app.get('/api/inventory/:category', async (req, res) => {
 
 // Get single inventory item
 app.get('/api/inventory/item/:id', async (req, res) => {
+  await connectDB();
   try {
     const item = await Inventory.findOne({ id: req.params.id });
     if (item) {
@@ -76,6 +80,7 @@ app.get('/api/inventory/item/:id', async (req, res) => {
 
 // Add new inventory item
 app.post('/api/inventory', async (req, res) => {
+  await connectDB();
   try {
     const newItem = new Inventory({
       id: uuidv4(),
@@ -99,6 +104,7 @@ app.post('/api/inventory', async (req, res) => {
 
 // Update inventory item
 app.put('/api/inventory/:id', async (req, res) => {
+  await connectDB();
   try {
     const item = await Inventory.findOneAndUpdate(
       { id: req.params.id },
@@ -121,6 +127,7 @@ app.put('/api/inventory/:id', async (req, res) => {
 
 // Delete inventory item
 app.delete('/api/inventory/:id', async (req, res) => {
+  await connectDB();
   try {
     const item = await Inventory.findOneAndDelete({ id: req.params.id });
     if (item) {
@@ -135,6 +142,7 @@ app.delete('/api/inventory/:id', async (req, res) => {
 
 // Initialize sample inventory
 app.post('/api/inventory/initialize', async (req, res) => {
+  await connectDB();
   try {
     const existingCount = await Inventory.countDocuments();
     if (existingCount > 0) {
@@ -162,8 +170,13 @@ app.post('/api/inventory/initialize', async (req, res) => {
   }
 });
 
+// ============================================
+// BILL ROUTES
+// ============================================
+
 // Create new bill
 app.post('/api/bills', async (req, res) => {
+  await connectDB();
   try {
     const inventoryItems = await Inventory.find();
     
@@ -210,6 +223,7 @@ app.post('/api/bills', async (req, res) => {
 
 // Get all bills
 app.get('/api/bills', async (req, res) => {
+  await connectDB();
   try {
     const bills = await Bill.find().sort({ createdAt: -1 });
     res.json(bills);
@@ -220,6 +234,7 @@ app.get('/api/bills', async (req, res) => {
 
 // Get single bill
 app.get('/api/bills/:id', async (req, res) => {
+  await connectDB();
   try {
     const bill = await Bill.findOne({ id: req.params.id });
     if (bill) {
@@ -232,8 +247,13 @@ app.get('/api/bills/:id', async (req, res) => {
   }
 });
 
-// Sales Reports
+// ============================================
+// SALES REPORTS ROUTES
+// ============================================
+
+// Daily sales report
 app.get('/api/reports/daily', async (req, res) => {
+  await connectDB();
   try {
     const date = req.query.date ? new Date(req.query.date) : new Date();
     date.setHours(0, 0, 0, 0);
@@ -251,7 +271,9 @@ app.get('/api/reports/daily', async (req, res) => {
   }
 });
 
+// Monthly sales report
 app.get('/api/reports/monthly', async (req, res) => {
+  await connectDB();
   try {
     const month = req.query.month ? parseInt(req.query.month) : new Date().getMonth() + 1;
     const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
@@ -270,7 +292,9 @@ app.get('/api/reports/monthly', async (req, res) => {
   }
 });
 
+// Yearly sales report
 app.get('/api/reports/yearly', async (req, res) => {
+  await connectDB();
   try {
     const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
@@ -288,57 +312,63 @@ app.get('/api/reports/yearly', async (req, res) => {
   }
 });
 
+// Generate report data
 async function generateReport(bills, period, date) {
-  const totalBills = bills.length;
-  const totalRevenue = bills.reduce((sum, bill) => sum + bill.total, 0);
-  
-  const categoryStats = {};
-  const inventoryItems = await Inventory.find();
+  try {
+    const totalBills = bills.length;
+    const totalRevenue = bills.reduce((sum, bill) => sum + bill.total, 0);
+    
+    const categoryStats = {};
+    const inventoryItems = await Inventory.find();
 
-  bills.forEach(bill => {
-    bill.items.forEach(item => {
-      const invItem = inventoryItems.find(i => i.id === item.id);
-      const category = invItem ? invItem.category : 'unknown';
-      
-      if (!categoryStats[category]) {
-        categoryStats[category] = { count: 0, revenue: 0, quantity: 0 };
-      }
-      categoryStats[category].count += 1;
-      categoryStats[category].revenue += item.price * item.quantity;
-      categoryStats[category].quantity += item.quantity;
-    });
-  });
-
-  const dailyBreakdown = {};
-  if (period === 'monthly' || period === 'yearly') {
     bills.forEach(bill => {
-      const billDate = new Date(bill.createdAt).toISOString().split('T')[0];
-      if (!dailyBreakdown[billDate]) {
-        dailyBreakdown[billDate] = { bills: 0, revenue: 0 };
-      }
-      dailyBreakdown[billDate].bills += 1;
-      dailyBreakdown[billDate].revenue += bill.total;
+      bill.items.forEach(item => {
+        const invItem = inventoryItems.find(i => i.id === item.id);
+        const category = invItem ? invItem.category : 'unknown';
+        
+        if (!categoryStats[category]) {
+          categoryStats[category] = { count: 0, revenue: 0, quantity: 0 };
+        }
+        categoryStats[category].count += 1;
+        categoryStats[category].revenue += item.price * item.quantity;
+        categoryStats[category].quantity += item.quantity;
+      });
     });
-  }
 
-  return {
-    period,
-    date: date.toISOString().split('T')[0],
-    totalBills,
-    totalRevenue: parseFloat(totalRevenue.toFixed(2)),
-    categoryStats,
-    dailyBreakdown,
-    bills: bills.map(b => ({
-      id: b.id,
-      billNumber: b.billNumber,
-      total: b.total,
-      createdAt: b.createdAt
-    }))
-  };
+    const dailyBreakdown = {};
+    if (period === 'monthly' || period === 'yearly') {
+      bills.forEach(bill => {
+        const billDate = new Date(bill.createdAt).toISOString().split('T')[0];
+        if (!dailyBreakdown[billDate]) {
+          dailyBreakdown[billDate] = { bills: 0, revenue: 0 };
+        }
+        dailyBreakdown[billDate].bills += 1;
+        dailyBreakdown[billDate].revenue += bill.total;
+      });
+    }
+
+    return {
+      period,
+      date: date.toISOString().split('T')[0],
+      totalBills,
+      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+      categoryStats,
+      dailyBreakdown,
+      bills: bills.map(b => ({
+        id: b.id,
+        billNumber: b.billNumber,
+        total: b.total,
+        createdAt: b.createdAt
+      }))
+    };
+  } catch (error) {
+    throw error;
+  }
 }
 
 // Download report as CSV
 app.get('/api/reports/download/:type', async (req, res) => {
+  await connectDB();
   try {
     const type = req.params.type;
     let bills = [];
@@ -391,29 +421,19 @@ app.get('/api/reports/download/:type', async (req, res) => {
 });
 
 // ============================================
-// SERVER STARTUP (After all routes are defined)
+// SERVE STATIC FILES
 // ============================================
 
-async function startServer() {
-  try {
-    // Connect to MongoDB first
-    await connectDB();
-    
-    // Start Express server after MongoDB connection
-    app.listen(PORT, () => {
-      console.log(`\n🚀 Server is running on port ${PORT}!`);
-      console.log(`📍 Access your app at: ${process.env.RENDER ? `https://${process.env.RENDER_SERVICE_NAME || 'your-service'}.onrender.com` : `http://localhost:${PORT}`}`);
-      console.log(`💾 Using MongoDB Cloud Database`);
-      if (process.env.RENDER) {
-        console.log(`☁️  Deployed on Render.com`);
-      }
-      console.log('');
-    });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error.message);
-    process.exit(1);
-  }
-}
+// Serve main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+});
 
-// Start the application
-startServer();
+// Handle all other routes - serve index.html for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+});
+
+// Export the Express app as a Vercel serverless function
+module.exports = app;
+
