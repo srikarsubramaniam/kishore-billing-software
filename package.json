@@ -1,0 +1,32 @@
+{
+  "name": "kishore-billing-software",
+  "version": "1.0.0",
+  "description": "Billing web application for fancy store and electronics shop",
+  "main": "server.cloud.js",
+  "scripts": {
+    "start": "node server.cloud.js",
+    "dev": "nodemon server.cloud.js", 
+    "local": "node server.local.js",
+    "build": "npm install",
+    "render-build": "npm install",
+    "vercel-build": "echo 'Vercel build complete'"
+  },
+  "keywords": [
+    "billing",
+    "inventory",
+    "pos"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.19.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
