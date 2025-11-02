@@ -62,6 +62,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lucide icons on first load
     try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
     // Charts will render when Dashboard is opened
+    try { renderDashboardCharts(); } catch (_) {}
+
+    // Ensure mobile nav starts hidden
+    try {
+        const nav = document.getElementById('main-nav');
+        if (nav) {
+            nav.classList.remove('mobile-nav-open');
+            nav.classList.add('hidden');
+            nav.style.display = 'none';
+        }
+    } catch (_) {}
 });
 
 // Format numbers with commas (Indian numbering system)
@@ -158,8 +169,14 @@ function toggleMobileMenu() {
     // Body scroll lock state
     if (isOpen) {
         body.classList.add('menu-open');
+        // Ensure Tailwind 'hidden' utility doesn't keep it hidden
+        nav.classList.remove('hidden');
+        nav.style.display = 'block';
     } else {
         body.classList.remove('menu-open');
+        // Re-hide when closed on mobile
+        nav.classList.add('hidden');
+        nav.style.display = 'none';
     }
     // Accessibility attributes
     toggle.setAttribute('aria-expanded', String(isOpen));
@@ -179,6 +196,10 @@ function closeMobileMenu() {
     if (nav) nav.classList.remove('mobile-nav-open');
     if (toggle) toggle.classList.remove('active');
     if (body) body.classList.remove('menu-open');
+    if (nav) {
+        nav.classList.add('hidden');
+        nav.style.display = 'none';
+    }
 }
 
 // Close mobile menu when clicking outside
@@ -186,7 +207,13 @@ document.addEventListener('click', function(event) {
     const nav = document.getElementById('main-nav');
     const header = document.querySelector('header');
 
-    if (nav && header && !header.contains(event.target) && nav.classList.contains('mobile-nav-open')) {
+    if (!nav || !header) return;
+
+    const clickInsideHeader = header.contains(event.target);
+    const clickInsideNav = nav.contains(event.target);
+    const isOpen = nav.classList.contains('mobile-nav-open');
+
+    if (isOpen && !clickInsideHeader && !clickInsideNav) {
         closeMobileMenu();
     }
 });

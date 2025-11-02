@@ -42,9 +42,28 @@
             <div class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center">
               <i data-lucide="user"></i>
             </div>
+            <button class="mobile-menu-toggle md:hidden inline-flex flex-col justify-center items-center w-10 h-10 rounded-xl bg-white/10" aria-label="Open menu" aria-controls="main-nav" aria-expanded="false" onclick="toggleMobileMenu()">
+              <span class="block w-6 h-0.5 bg-white rounded"></span>
+              <span class="block w-6 h-0.5 bg-white rounded my-1"></span>
+              <span class="block w-6 h-0.5 bg-white rounded"></span>
+            </button>
           </div>
         </div>
       </header>
+
+      <!-- Mobile Nav (only for small screens) -->
+      <nav id="main-nav" class="md:hidden mx-2 hidden rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-white text-slate-800">
+          <div class="grid grid-cols-3 gap-2 p-3">
+            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('dashboard')">Dashboard</button>
+            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('billing')">Create Bill</button>
+            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('inventory')">Inventory</button>
+            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('bills')">Bills</button>
+            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('reports')">Reports</button>
+            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('settings')">Settings</button>
+          </div>
+        </div>
+      </nav>
 
       <div class="flex gap-5">
         <!-- Dark Sidebar -->

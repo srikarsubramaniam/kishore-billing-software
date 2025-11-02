@@ -1399,10 +1399,18 @@ h2 {
     }
     
     .mobile-menu-toggle {
-        display: none; /* Hide hamburger on mobile as nav is always visible */
+        display: inline-flex;
     }
-    
+
     nav.desktop-nav { display: none !important; }
+
+    /* Mobile drawer nav behavior */
+    #main-nav { display: none; }
+    #main-nav.mobile-nav-open { display: block !important; }
+    body.menu-open { overflow: hidden; }
+
+    /* Ensure buttons inside the mobile nav are visible */
+    #main-nav .nav-btn { display: block; width: 100%; }
 
     nav.desktop-nav.mobile-nav-open {
         transform: none;

@@ -11,6 +11,22 @@ const Inventory = require('../models/Inventory');
 const Bill = require('../models/Bill');
 
 const app = express();
+// ✅ Enable CORS for frontend + local dev
+
+const allowed = [
+  'https://kishore-billing-software.onrender.com', // your deployed frontend
+  'http://localhost:10000' // local testing (optional)
+];
+
+app.use(cors({
+  origin: (origin, cb) => cb(null, allowed.includes(origin) || !origin),
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+}));
+
+// Optional preflight
+app.options('*', cors());
+
 
 // Middleware
 app.use(cors());
