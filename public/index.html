@@ -21,6 +21,14 @@
         }
       }
     </script>
+    <style>
+      @media (max-width: 768px) {
+        /* Force visibility when checkbox is checked (override any utility classes) */
+        #menu-toggle:checked ~ #menu-overlay { display: block !important; opacity: 1 !important; }
+        #menu-toggle:checked ~ #main-nav { display: block !important; }
+        #menu-toggle:checked ~ #main-nav .drawer-content { transform: translateX(0) !important; }
+      }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -42,25 +50,35 @@
             <div class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center">
               <i data-lucide="user"></i>
             </div>
-            <button class="mobile-menu-toggle md:hidden inline-flex flex-col justify-center items-center w-10 h-10 rounded-xl bg-white/10" aria-label="Open menu" aria-controls="main-nav" aria-expanded="false" onclick="toggleMobileMenu()">
+            <label id="menuButton" for="menu-toggle" class="mobile-menu-toggle md:hidden inline-flex flex-col justify-center items-center w-10 h-10 rounded-xl bg-white/10" aria-label="Open menu">
               <span class="block w-6 h-0.5 bg-white rounded"></span>
               <span class="block w-6 h-0.5 bg-white rounded my-1"></span>
               <span class="block w-6 h-0.5 bg-white rounded"></span>
-            </button>
+            </label>
           </div>
         </div>
       </header>
 
-      <!-- Mobile Nav (only for small screens) -->
-      <nav id="main-nav" class="md:hidden mx-2 hidden rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-white text-slate-800">
-          <div class="grid grid-cols-3 gap-2 p-3">
-            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('dashboard')">Dashboard</button>
-            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('billing')">Create Bill</button>
-            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('inventory')">Inventory</button>
-            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('bills')">Bills</button>
-            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('reports')">Reports</button>
-            <button class="nav-btn bg-white text-slate-700 border border-slate-300 rounded-xl py-2 px-3 text-sm" onclick="openSection('settings')">Settings</button>
+      <!-- Hidden checkbox controls mobile nav (CSS-only toggle) -->
+      <input type="checkbox" id="menu-toggle" class="menu-toggle-hidden" />
+
+      <!-- Overlay (label closes when clicked) -->
+      <label id="menu-overlay" for="menu-toggle" class="hidden"></label>
+
+      <!-- Drawer Nav (mobile only) -->
+      <nav id="main-nav" class="md:hidden hidden">
+        <div class="drawer-content">
+          <div class="drawer-header">
+            <div class="drawer-title">Menu</div>
+            <label id="menuClose" class="drawer-close" aria-label="Close menu" for="menu-toggle">✖</label>
+          </div>
+          <div class="drawer-actions">
+            <button class="nav-btn" data-section="dashboard" type="button"><i data-lucide="layout-dashboard" style="margin-right:8px;"></i> Dashboard</button>
+            <button class="nav-btn" data-section="billing" type="button"><i data-lucide="receipt" style="margin-right:8px;"></i> Create Bill</button>
+            <button class="nav-btn" data-section="inventory" type="button"><i data-lucide="package" style="margin-right:8px;"></i> Inventory</button>
+            <button class="nav-btn" data-section="bills" type="button"><i data-lucide="file-text" style="margin-right:8px;"></i> Bills</button>
+            <button class="nav-btn" data-section="reports" type="button"><i data-lucide="bar-chart-3" style="margin-right:8px;"></i> Reports</button>
+            <button class="nav-btn" data-section="settings" type="button"><i data-lucide="settings" style="margin-right:8px;"></i> Settings</button>
           </div>
         </div>
       </nav>

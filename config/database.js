@@ -10,9 +10,9 @@ const connectDB = async () => {
   }
 
   try {
-    const mongoUri = process.env.MONGO_URL || process.env.MONGODB_URI;
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
     if (!mongoUri) {
-      throw new Error('MONGO_URL or MONGODB_URI environment variable is not set');
+      throw new Error('MONGO_URI or MONGODB_URI environment variable is not set');
     }
 
     const conn = await mongoose.connect(mongoUri, {
@@ -37,7 +37,7 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    console.error('💡 Make sure MONGO_URL or MONGODB_URI is set correctly');
+    console.error('💡 Make sure MONGO_URI or MONGODB_URI is set correctly');
     throw error;
   }
 };

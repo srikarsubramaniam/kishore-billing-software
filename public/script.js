@@ -67,11 +67,104 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ensure mobile nav starts hidden
     try {
         const nav = document.getElementById('main-nav');
+        const overlay = document.getElementById('menu-overlay');
+        const checkbox = document.getElementById('menu-toggle');
+        const hamburger = document.querySelector('label.mobile-menu-toggle');
         if (nav) {
             nav.classList.remove('mobile-nav-open');
             nav.classList.add('hidden');
             nav.style.display = 'none';
         }
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.classList.add('hidden');
+            overlay.style.display = 'none';
+            overlay.addEventListener('click', () => closeMobileMenu());
+        }
+        // Wire CSS-only checkbox to JS side-effects (overlay, scroll lock, aria)
+        if (checkbox) {
+            const syncFromCheckbox = () => {
+                const checked = checkbox.checked;
+                const toggle = document.querySelector('.mobile-menu-toggle');
+                if (checked) {
+                    if (nav) {
+                        nav.classList.add('mobile-nav-open');
+                        nav.classList.remove('hidden');
+                        nav.style.display = 'block';
+                    }
+                    if (overlay) {
+                        overlay.classList.remove('hidden');
+                        overlay.classList.add('active');
+                        overlay.style.display = 'block';
+                    }
+                    document.body.classList.add('menu-open');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'true');
+                    if (nav) nav.setAttribute('aria-hidden', 'false');
+                    if (toggle) toggle.classList.add('active');
+                    try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
+                } else {
+                    if (nav) {
+                        nav.classList.remove('mobile-nav-open');
+                        nav.classList.add('hidden');
+                        nav.style.display = 'none';
+                    }
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                        overlay.classList.add('hidden');
+                        overlay.style.display = 'none';
+                    }
+                    document.body.classList.remove('menu-open');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                    if (nav) nav.setAttribute('aria-hidden', 'true');
+                    if (toggle) toggle.classList.remove('active');
+                }
+            };
+            checkbox.addEventListener('change', syncFromCheckbox);
+            // Ensure initial sync
+            syncFromCheckbox();
+        }
+        // Failsafe: explicitly toggle checkbox on hamburger click/touch
+        // Explicit listeners by ID (works across pages)
+        const menuButton = document.getElementById('menuButton');
+        const menuClose = document.getElementById('menuClose');
+        if (menuButton && checkbox) {
+            const toggleCheck = (e) => {
+                try { e.preventDefault(); } catch(_) {}
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+            menuButton.addEventListener('click', toggleCheck);
+            menuButton.addEventListener('touchstart', toggleCheck, { passive: true });
+        }
+        if (menuClose && checkbox) {
+            const closeCheck = (e) => {
+                try { e.preventDefault(); } catch(_) {}
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+            menuClose.addEventListener('click', closeCheck);
+            menuClose.addEventListener('touchstart', closeCheck, { passive: true });
+        }
+
+        // Drawer nav buttons -> navigate to section and close menu
+        const drawerButtons = document.querySelectorAll('#main-nav .nav-btn[data-section]');
+        drawerButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sectionId = btn.getAttribute('data-section');
+                try {
+                    if (typeof openSection === 'function') {
+                        openSection(sectionId);
+                    } else if (typeof showSection === 'function') {
+                        showSection(sectionId, null);
+                    }
+                } catch (_) {}
+                // Ensure checkbox gets unchecked to close drawer
+                if (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        });
     } catch (_) {}
 });
 
@@ -159,6 +252,7 @@ function toggleMobileMenu() {
     const nav = document.getElementById('main-nav');
     const body = document.body;
     const toggle = document.querySelector('.mobile-menu-toggle');
+    const overlay = document.getElementById('menu-overlay');
 
     if (!nav || !toggle) return;
 
@@ -172,11 +266,21 @@ function toggleMobileMenu() {
         // Ensure Tailwind 'hidden' utility doesn't keep it hidden
         nav.classList.remove('hidden');
         nav.style.display = 'block';
+        if (overlay) {
+            overlay.classList.remove('hidden');
+            overlay.classList.add('active');
+            overlay.style.display = 'block';
+        }
     } else {
         body.classList.remove('menu-open');
         // Re-hide when closed on mobile
         nav.classList.add('hidden');
         nav.style.display = 'none';
+        if (overlay) {
+            overlay.classList.remove('active');
+            overlay.classList.add('hidden');
+            overlay.style.display = 'none';
+        }
     }
     // Accessibility attributes
     toggle.setAttribute('aria-expanded', String(isOpen));
@@ -192,6 +296,8 @@ function closeMobileMenu() {
     const nav = document.getElementById('main-nav');
     const body = document.body;
     const toggle = document.querySelector('.mobile-menu-toggle');
+    const overlay = document.getElementById('menu-overlay');
+    const checkbox = document.getElementById('menu-toggle');
 
     if (nav) nav.classList.remove('mobile-nav-open');
     if (toggle) toggle.classList.remove('active');
@@ -199,6 +305,16 @@ function closeMobileMenu() {
     if (nav) {
         nav.classList.add('hidden');
         nav.style.display = 'none';
+    }
+    if (overlay) {
+        overlay.classList.remove('active');
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+    }
+    if (checkbox) {
+        checkbox.checked = false;
+        // Trigger change sync for consistency
+        checkbox.dispatchEvent(new Event('change'));
     }
 }
 
@@ -584,7 +700,7 @@ function searchInventory() {
 async function updateDashboard() {
     try {
         // Load inventory data
-        const inventoryResponse = await fetch('/api/inventory');
+        const inventoryResponse = await fetch(api('/api/inventory'));
         if (!inventoryResponse.ok) {
             throw new Error('Failed to fetch inventory');
         }
@@ -600,7 +716,7 @@ async function updateDashboard() {
         document.getElementById('total-value').textContent = formatIndianNumber(totalValue);
 
         // Load bills data
-        const billsResponse = await fetch('/api/bills');
+        const billsResponse = await fetch(api('/api/bills'));
         if (!billsResponse.ok) {
             throw new Error('Failed to fetch bills');
         }
