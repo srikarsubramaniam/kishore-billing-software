@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             };
             menuButton.addEventListener('click', toggleCheck);
-            menuButton.addEventListener('touchstart', toggleCheck, { passive: true });
+            menuButton.addEventListener('touchstart', toggleCheck);
         }
         if (menuClose && checkbox) {
             const closeCheck = (e) => {
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkbox.dispatchEvent(new Event('change', { bubbles: true }));
             };
             menuClose.addEventListener('click', closeCheck);
-            menuClose.addEventListener('touchstart', closeCheck, { passive: true });
+            menuClose.addEventListener('touchstart', closeCheck);
         }
 
         // Drawer nav buttons -> navigate to section and close menu
