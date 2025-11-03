@@ -336,8 +336,36 @@ h2 {
 
 @media (max-width: 768px) {
     .home-tiles {
+        display: none; /* Hide desktop tiles on mobile */
+    }
+    .mobile-nav-tiles {
+        display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+        gap: 12px;
+        margin-top: 20px;
+    }
+    .mobile-nav-tile {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid rgba(255,255,255,0.8);
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mobile-nav-tile:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    .mobile-tile-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+    .mobile-tile-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-primary);
     }
     .tile-icon { font-size: 24px; }
 }
