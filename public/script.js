@@ -51,8 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBills();
     updateDashboard();
     loadUPISettings();
-    // Show Dashboard section by default to match new layout
-    showSection('dashboard', null);
+    // Default section: Home on mobile, Dashboard on larger screens
+    try {
+        if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+            showSection('home', null);
+        } else {
+            showSection('dashboard', null);
+        }
+    } catch (_) {
+        showSection('dashboard', null);
+    }
     // Set today's date in header
     try {
         const d = new Date();

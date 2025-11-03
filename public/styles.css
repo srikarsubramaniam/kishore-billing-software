@@ -263,6 +263,16 @@ nav {
     .container {
         padding-top: 120px; /* Space for fixed header */
     }
+
+    /* Mobile-only: hide hamburger and drawer menu */
+    label#menuButton,
+    .mobile-menu-toggle {
+        display: none !important;
+    }
+    #main-nav,
+    #menu-overlay {
+        display: none !important;
+    }
 }
 
 .section-header {
@@ -366,6 +376,11 @@ h2 {
         font-weight: 600;
         font-size: 14px;
         color: var(--text-primary);
+    }
+    .mobile-tile-sub {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
     }
     .tile-icon { font-size: 24px; }
 }
