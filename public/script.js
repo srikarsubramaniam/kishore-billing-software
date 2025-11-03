@@ -40,6 +40,9 @@ let cart = [];
 let currentFilter = 'all';
 let currentBillingFilter = 'all';
 let currentBill = null;
+// Track current section + guard to avoid recursive history pushes
+let currentSection = 'home';
+let suppressHistory = false;
 let upiSettings = {
   upiId: localStorage.getItem('upiId') || 'saravanastores@paytm',
   payeeName: localStorage.getItem('payeeName') || 'Saravana Stores'
@@ -54,12 +57,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Default section: Home on mobile, Dashboard on larger screens
     try {
         if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+            // Establish Home as the base history entry
+            try { history.replaceState({ section: 'home' }, '', '#home'); } catch (_) {}
+            suppressHistory = true;
             showSection('home', null);
+            suppressHistory = false;
         } else {
+            // Base is Home, then push Dashboard so back returns to Home
+            try { history.replaceState({ section: 'home' }, '', '#home'); } catch (_) {}
+            suppressHistory = true;
+            showSection('home', null);
+            suppressHistory = false;
+            try { history.pushState({ section: 'dashboard' }, '', '#dashboard'); } catch (_) {}
+            suppressHistory = true;
             showSection('dashboard', null);
+            suppressHistory = false;
         }
     } catch (_) {
-        showSection('dashboard', null);
+        try { history.replaceState({ section: 'home' }, '', '#home'); } catch (_) {}
+        suppressHistory = true;
+        showSection('home', null);
+        suppressHistory = false;
     }
     // Set today's date in header
     try {
@@ -172,6 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     } catch (_) {}
+});
+
+// Handle browser/device back to navigate within SPA
+window.addEventListener('popstate', (event) => {
+    const section = (event && event.state && event.state.section) ? event.state.section : 'home';
+    suppressHistory = true;
+    showSection(section, null);
+    suppressHistory = false;
 });
 
 // Format numbers with commas (Indian numbering system)
@@ -461,6 +487,15 @@ function showSection(sectionId, element) {
     }
     // Render icons for any dynamic content
     try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch (_) {}
+
+    // Update current section and history (unless suppressed e.g., during back or initial load)
+    try {
+        currentSection = sectionId;
+        if (!suppressHistory) {
+            // Push state so that back returns to the previous section
+            history.pushState({ section: sectionId }, '', `#${sectionId}`);
+        }
+    } catch (_) {}
 }
 
 // Dashboard Charts (Chart.js demo)
