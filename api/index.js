@@ -142,6 +142,7 @@ app.get('/api/inventory/item/:id', async (req, res) => {
 // Add new inventory item
 app.post('/api/inventory', async (req, res) => {
   try {
+    console.log('📝 Adding new inventory item:', req.body);
     await connectDB();
     const newItem = new Inventory({
       id: uuidv4(),
@@ -156,10 +157,23 @@ app.post('/api/inventory', async (req, res) => {
       updatedAt: new Date()
     });
 
+    console.log('💾 Saving item to database...');
     await newItem.save();
+    console.log('✅ Item saved successfully:', newItem.id);
     res.json(newItem);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error saving inventory item:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      stack: error.stack
+    });
+    res.status(500).json({
+      error: error.message,
+      code: error.code,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
