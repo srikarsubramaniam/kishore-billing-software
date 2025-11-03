@@ -152,17 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => {
                 const sectionId = btn.getAttribute('data-section');
                 try {
+                    // openSection already handles closing the menu, so just call it
                     if (typeof openSection === 'function') {
                         openSection(sectionId);
                     } else if (typeof showSection === 'function') {
                         showSection(sectionId, null);
+                        // Manually close menu since openSection isn't available
+                        closeMobileMenu();
                     }
                 } catch (_) {}
-                // Ensure checkbox gets unchecked to close drawer
-                if (checkbox) {
-                    checkbox.checked = false;
-                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-                }
             });
         });
     } catch (_) {}
