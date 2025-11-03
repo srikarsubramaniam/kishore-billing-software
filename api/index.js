@@ -12,17 +12,43 @@ const Inventory = require('../models/Inventory');
 const Bill = require('../models/Bill');
 
 const app = express();
-// ✅ Enable CORS for frontend + local dev
+// ✅ Enable CORS for frontend + local dev + mobile browsers
 
 const allowed = [
   'https://kishore-billing-software.onrender.com', // your deployed frontend
-  'http://localhost:10000' // local testing (optional)
+  'http://localhost:10000', // local testing (optional)
+  'null', // for local file:// protocol
+  undefined // for same-origin requests
 ];
 
 app.use(cors({
-  origin: (origin, cb) => cb(null, allowed.includes(origin) || !origin),
+  origin: (origin, cb) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return cb(null, true);
+
+    // Allow all origins ending with common domains (for mobile testing)
+    const allowedPatterns = [
+      /\.onrender\.com$/,
+      /\.vercel\.app$/,
+      /\.netlify\.app$/,
+      /^https?:\/\/localhost(:\d+)?$/,
+      /^file:\/\/.*$/
+    ];
+
+    const isAllowed = allowed.includes(origin) ||
+      allowedPatterns.some(pattern => pattern.test(origin));
+
+    if (isAllowed) {
+      cb(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}`);
+      cb(null, false);
+    }
+  },
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 
 // Optional preflight
@@ -299,65 +325,68 @@ app.get('/api/bills/:id', async (req, res) => {
 // SALES REPORTS ROUTES
 // ============================================
 
-// Daily sales report
-app.get('/api/reports/daily', async (req, res) => {
+// Unified reports endpoint for mobile compatibility
+app.get('/api/reports', async (req, res) => {
   try {
     await connectDB();
+    const type = req.query.type || 'daily';
     const date = req.query.date ? new Date(req.query.date) : new Date();
-    date.setHours(0, 0, 0, 0);
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
-
-    const dailyBills = await Bill.find({
-      createdAt: { $gte: date, $lt: nextDate }
-    }).sort({ createdAt: -1 });
-
-    const report = await generateReport(dailyBills, 'daily', date);
-    res.json(report);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Monthly sales report
-app.get('/api/reports/monthly', async (req, res) => {
-  try {
-    await connectDB();
     const month = req.query.month ? parseInt(req.query.month) : new Date().getMonth() + 1;
     const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59);
+    let bills = [];
+    let reportDate = date;
 
-    const monthlyBills = await Bill.find({
-      createdAt: { $gte: startDate, $lte: endDate }
-    }).sort({ createdAt: -1 });
+    if (type === 'daily') {
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      bills = await Bill.find({
+        createdAt: { $gte: date, $lt: nextDate }
+      }).sort({ createdAt: -1 });
+      reportDate = date;
+    } else if (type === 'monthly') {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
+      bills = await Bill.find({
+        createdAt: { $gte: startDate, $lte: endDate }
+      }).sort({ createdAt: -1 });
+      reportDate = startDate;
+    } else if (type === 'yearly') {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59);
+      bills = await Bill.find({
+        createdAt: { $gte: startDate, $lte: endDate }
+      }).sort({ createdAt: -1 });
+      reportDate = startDate;
+    }
 
-    const report = await generateReport(monthlyBills, 'monthly', startDate);
+    const report = await generateReport(bills, type, reportDate);
     res.json(report);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ Error generating report:', error);
+    res.status(500).json({
+      error: error.message,
+      message: 'Failed to generate sales report',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
-// Yearly sales report
+// Legacy endpoints for backward compatibility
+app.get('/api/reports/daily', async (req, res) => {
+  req.query.type = 'daily';
+  return app._router.handle(req, res, () => {});
+});
+
+app.get('/api/reports/monthly', async (req, res) => {
+  req.query.type = 'monthly';
+  return app._router.handle(req, res, () => {});
+});
+
 app.get('/api/reports/yearly', async (req, res) => {
-  try {
-    await connectDB();
-    const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year, 11, 31, 23, 59, 59);
-
-    const yearlyBills = await Bill.find({
-      createdAt: { $gte: startDate, $lte: endDate }
-    }).sort({ createdAt: -1 });
-
-    const report = await generateReport(yearlyBills, 'yearly', startDate);
-    res.json(report);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  req.query.type = 'yearly';
+  return app._router.handle(req, res, () => {});
 });
 
 // Generate report data
