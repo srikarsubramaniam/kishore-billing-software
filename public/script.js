@@ -357,6 +357,34 @@ function saveUPISettings() {
     alert('UPI settings saved successfully!');
 }
 
+async function initializeSampleInventory() {
+    if (!confirm('This will add sample products to your inventory. Continue?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(api('/api/inventory/initialize'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(`✅ ${result.message}\n\nAdded ${result.count} sample products to your inventory.`);
+            // Refresh inventory display
+            loadInventory();
+        } else {
+            alert(`❌ Error: ${result.error || 'Failed to initialize inventory'}`);
+        }
+    } catch (error) {
+        console.error('Error initializing sample inventory:', error);
+        alert('❌ Error initializing sample inventory. Please try again.');
+    }
+}
+
 
 
 // Navigation
